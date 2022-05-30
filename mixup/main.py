@@ -26,7 +26,7 @@ parser = argparse.ArgumentParser(description='Trains ResNeXt on CIFAR or ImageNe
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--seed', type=int, default=1)
 parser.add_argument('--dataset', type=str, default='cifar10', choices=['cifar10', 'cifar100'])
-parser.add_argument('--data_dir', type=str, default='cifar10', help='file where results are to be written')
+parser.add_argument('--data_dir', type=str, default='cifar10', help='dataset directory path')
 parser.add_argument('--result_dir', type=str, default='results/mixup/', help='folder where results are to be stored')
 parser.add_argument('--labels_per_class', type=int, default=5000, metavar='NL', help='labels_per_class')
 parser.add_argument('--valid_labels_per_class', type=int, default=0, metavar='NL', help='validation labels_per_class')

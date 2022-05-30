@@ -1,7 +1,3 @@
-'''
-Created on 19 Oct 2017
-
-'''
 import _pickle as pickle
 import os
 import matplotlib.pyplot as plt

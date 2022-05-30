@@ -1,10 +1,5 @@
 #!/bin/bash
 
-# Set project path
-PROJECT_ROOT=../
-RUNFILE=mixup/main.py
-DATA_DIR=/home/miil/Datasets/FSCIL-CEC
-
 # Experiment options
 options=("CIFAR-10 & Manifold mixup Preactresnet18" \
          "CIFAR-100 & Manifold mixup Preactresnet18")
@@ -23,13 +18,11 @@ read -r num
 GPU="${num}"
 
 # Run python file
-cd ${PROJECT_ROOT} || exit
-
 if [ "${option}" = "CIFAR-10 & Manifold mixup Preactresnet18" ]; then
-    CUDA_VISIBLE_DEVICES=${GPU} python ${RUNFILE} \
+    CUDA_VISIBLE_DEVICES=${GPU} python mixup/main.py \
         --dataset cifar10 \
-        --data_dir ${DATA_DIR} \
-        --root_dir results/mixup/ \
+        --data_dir /home/miil/Datasets/FSCIL-CEC \
+        --result_dir results/mixup/ \
         --labels_per_class 5000 \
         --arch preactresnet18  \
         --learning_rate 0.1 \
@@ -41,10 +34,10 @@ if [ "${option}" = "CIFAR-10 & Manifold mixup Preactresnet18" ]; then
         --train mixup_hidden \
         --mixup_alpha 2.0
 elif [ "${option}" = "CIFAR-100 & Manifold mixup Preactresnet18" ]; then
-    CUDA_VISIBLE_DEVICES=${GPU} python ${RUNFILE} \
+    CUDA_VISIBLE_DEVICES=${GPU} python mixup/main.py \
         --dataset cifar100 \
-        --data_dir ${DATA_DIR} \
-        --root_dir results/mixup/ \
+        --data_dir /home/miil/Datasets/FSCIL-CEC \
+        --result_dir results/mixup/ \
         --labels_per_class 500 \
         --arch preactresnet18  \
         --learning_rate 0.1 \

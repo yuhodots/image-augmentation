@@ -3,17 +3,7 @@ Reproduce Manifold Mixup(Verma, Vikas, et al.) and AugMix(Hendrycks, Dan, et al.
 
 ## How to Run
 
-### Manifold Mixup
-
 ```shell
-cd mixup
-./run.sh
-```
-
-### AugMix
-
-```shell
-cd augmix
 ./run.sh
 ```
 

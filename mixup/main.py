@@ -1,11 +1,15 @@
-#!/usr/bin/env python
 from __future__ import division
 import sys
+import os
+import inspect
 import torch.backends.cudnn as cudnn
 import torch.nn as nn
 import matplotlib as mpl
 import argparse
 
+current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
 mpl.use('Agg')
 
 from mixup.utils import *
@@ -23,7 +27,7 @@ parser = argparse.ArgumentParser(description='Trains ResNeXt on CIFAR or ImageNe
 parser.add_argument('--seed', type=int, default=1)
 parser.add_argument('--dataset', type=str, default='cifar10', choices=['cifar10', 'cifar100'])
 parser.add_argument('--data_dir', type=str, default='cifar10', help='file where results are to be written')
-parser.add_argument('--root_dir', type=str, default='experiments', help='folder where results are to be stored')
+parser.add_argument('--result_dir', type=str, default='results/mixup/', help='folder where results are to be stored')
 parser.add_argument('--labels_per_class', type=int, default=5000, metavar='NL', help='labels_per_class')
 parser.add_argument('--valid_labels_per_class', type=int, default=0, metavar='NL', help='validation labels_per_class')
 
@@ -322,7 +326,7 @@ def main():
                                          lr=args.learning_rate, momentum=args.momentum, decay=args.decay,
                                          data_aug=args.data_aug, train=args.train, mixup_alpha=args.mixup_alpha,
                                          job_id=args.job_id, add_name=args.add_name)
-    exp_dir = args.root_dir + exp_name
+    exp_dir = args.result_dir + exp_name
 
     if not os.path.exists(exp_dir):
         os.makedirs(exp_dir)

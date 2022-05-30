@@ -5,8 +5,8 @@ echo "This script is for CIFAR-100 experiment
       which contains only '60' classes."
 
 # Experiment options
-options=("CIFAR-100 & Manifold mixup Preactresnet18 (original ver.)" \
-         "CIFAR-100 & Manifold mixup Preactresnet18" \
+options=("CIFAR-100 & Manifold mixup Preactresnet18 (original repo ver.)" \
+         "CIFAR-100 & Manifold mixup Preactresnet18 (paper ver.)" \
          "CIFAR-100 & Manifold mixup Preactresnet18 (fast train ver.)" \
          "CIFAR-100 & Manifold mixup Preactresnet20")
 
@@ -24,7 +24,7 @@ read -r num
 GPU="${num}"
 
 # Run python file
-if [ "${option}" = "CIFAR-100 & Manifold mixup Preactresnet18 (original ver.)" ]; then
+if [ "${option}" = "CIFAR-100 & Manifold mixup Preactresnet18 (original repo ver.)" ]; then
     CUDA_VISIBLE_DEVICES=${GPU} python mixup/main.py \
         --dataset cifar100 \
         --data_dir /home/miil/Datasets/FSCIL-CEC \
@@ -39,10 +39,10 @@ if [ "${option}" = "CIFAR-100 & Manifold mixup Preactresnet18 (original ver.)" ]
         --gammas 0.1 0.1 0.1 \
         --train mixup_hidden \
         --mixup_alpha 2.0 \
-        --memo original_ver \
         --partial_class True \
-        --partial_class_indices 60
-elif [ "${option}" = "CIFAR-100 & Manifold mixup Preactresnet18" ]; then
+        --partial_class_indices 60 \
+        --memo original_repo_ver
+elif [ "${option}" = "CIFAR-100 & Manifold mixup Preactresnet18 (paper ver.)" ]; then
     CUDA_VISIBLE_DEVICES=${GPU} python mixup/main.py \
         --dataset cifar100 \
         --data_dir /home/miil/Datasets/FSCIL-CEC \
@@ -58,7 +58,8 @@ elif [ "${option}" = "CIFAR-100 & Manifold mixup Preactresnet18" ]; then
         --train mixup_hidden \
         --mixup_alpha 2.0 \
         --partial_class True \
-        --partial_class_indices 60
+        --partial_class_indices 60 \
+        --memo paper_ver
 elif [ "${option}" = "CIFAR-100 & Manifold mixup Preactresnet18 (fast train ver.)" ]; then
     CUDA_VISIBLE_DEVICES=${GPU} python mixup/main.py \
         --dataset cifar100 \
@@ -75,7 +76,8 @@ elif [ "${option}" = "CIFAR-100 & Manifold mixup Preactresnet18 (fast train ver.
         --train mixup_hidden \
         --mixup_alpha 2.0 \
         --partial_class True \
-        --partial_class_indices 60
+        --partial_class_indices 60 \
+        --memo fast_train_ver
 elif [ "${option}" = "CIFAR-100 & Manifold mixup Preactresnet20" ]; then
     CUDA_VISIBLE_DEVICES=${GPU} python mixup/main.py \
         --dataset cifar100 \

@@ -24,6 +24,7 @@ read -r num
 GPU="${num}"
 
 # Run python file
+cd ../
 if [ "${option}" = "CIFAR-100 & Manifold mixup Preactresnet18 (original repo ver.)" ]; then
     CUDA_VISIBLE_DEVICES=${GPU} python mixup/main.py \
         --dataset cifar100 \

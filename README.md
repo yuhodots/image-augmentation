@@ -12,7 +12,7 @@ Reproduce Manifold Mixup(Verma, Vikas, et al.) and AugMix(Hendrycks, Dan, et al.
 You can run the script file below to select experimental options.
 
 ```shell
-./run.sh
+TBU
 ```
 
 You can check the summary of model architecture by using `models/summary.py` file.

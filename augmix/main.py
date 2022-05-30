@@ -34,7 +34,7 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 
 from augmix.augmentations import augmentations, augmentations_all
-from augmix.models.cifar.allconv import AllConvNet
+import models
 import numpy as np
 
 import torch
@@ -43,13 +43,17 @@ import torch.nn.functional as F
 from torchvision import datasets
 from torchvision import transforms
 
+model_names = sorted(name for name in models.__dict__
+                     if name.islower() and not name.startswith("__")
+                     and callable(models.__dict__[name]))
+
 parser = argparse.ArgumentParser(description='Trains a CIFAR Classifier',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--dataset', type=str, default='cifar100',
                     choices=['cifar10', 'cifar100'], help='Choose between CIFAR-10, CIFAR-100.')
 parser.add_argument('--data_dir', type=str, default='cifar10', help='dataset directory path')
-parser.add_argument('--model', '-m', type=str, default='allconv',
-                    choices=['allconv'], help='Choose architecture.')
+parser.add_argument('--arch', metavar='ARCH', default='preactresnet18', choices=model_names,
+                    help='model architecture: ' + ' | '.join(model_names) + ' (default: preactresnet18)')
 
 # Optimization options
 parser.add_argument('--epochs', '-e', type=int, default=100, help='Number of epochs to train.')
@@ -76,21 +80,12 @@ parser.add_argument('--all-ops', '-all', action='store_true',
 
 # Checkpointing options
 parser.add_argument('--result_dir', '-s', type=str, default='results/augmix/', help='Folder to save checkpoints.')
-parser.add_argument('--resume', '-r', type=str, default='', help='Checkpoint path for resume / test.')
-parser.add_argument('--evaluate', action='store_true', help='Eval only.')
 parser.add_argument('--print-freq', type=int, default=50, help='Training loss print frequency (batches).')
 
 # Acceleration
 parser.add_argument('--num-workers', type=int, default=4, help='Number of pre-fetching threads.')
 
 args = parser.parse_args()
-
-CORRUPTIONS = [
-    'gaussian_noise', 'shot_noise', 'impulse_noise', 'defocus_blur',
-    'glass_blur', 'motion_blur', 'zoom_blur', 'snow', 'frost', 'fog',
-    'brightness', 'contrast', 'elastic_transform', 'pixelate',
-    'jpeg_compression'
-]
 
 
 def get_lr(step, total_steps, lr_max, lr_min):
@@ -118,8 +113,7 @@ def aug(image, preprocess):
     mix = torch.zeros_like(preprocess(image))
     for i in range(args.mixture_width):
         image_aug = image.copy()
-        depth = args.mixture_depth if args.mixture_depth > 0 else np.random.randint(
-            1, 4)
+        depth = args.mixture_depth if args.mixture_depth > 0 else np.random.randint(1, 4)
         for _ in range(depth):
             op = np.random.choice(aug_list)
             image_aug = op(image_aug, args.aug_severity)
@@ -143,9 +137,7 @@ class AugMixDataset(torch.utils.data.Dataset):
         if self.no_jsd:
             return aug(x, self.preprocess), y
         else:
-            im_tuple = (self.preprocess(x),
-                        aug(x, self.preprocess),
-                        aug(x, self.preprocess))
+            im_tuple = (self.preprocess(x), aug(x, self.preprocess), aug(x, self.preprocess))
             return im_tuple, y
 
     def __len__(self):
@@ -174,10 +166,9 @@ def train(net, train_loader, optimizer, scheduler):
             # Cross-entropy is only computed on clean images
             loss = F.cross_entropy(logits_clean, targets)
 
-            p_clean, p_aug1, p_aug2 = F.softmax(
-                logits_clean, dim=1), F.softmax(
-                logits_aug1, dim=1), F.softmax(
-                logits_aug2, dim=1)
+            p_clean, p_aug1, p_aug2 = F.softmax(logits_clean, dim=1), \
+                                      F.softmax(logits_aug1, dim=1), \
+                                      F.softmax(logits_aug2, dim=1)
 
             # Clamp mixture distribution to avoid exploding KL divergence
             p_mixture = torch.clamp((p_clean + p_aug1 + p_aug2) / 3., 1e-7, 1).log()
@@ -213,29 +204,6 @@ def test(net, test_loader):
         test_loader.dataset)
 
 
-def test_c(net, test_data, base_path):
-    """Evaluate network on given corrupted dataset."""
-    corruption_accs = []
-    for corruption in CORRUPTIONS:
-        # Reference to original data is mutated
-        test_data.data = np.load(base_path + corruption + '.npy')
-        test_data.targets = torch.LongTensor(np.load(base_path + 'labels.npy'))
-
-        test_loader = torch.utils.data.DataLoader(
-            test_data,
-            batch_size=args.eval_batch_size,
-            shuffle=False,
-            num_workers=args.num_workers,
-            pin_memory=True)
-
-        test_loss, test_acc = test(net, test_loader)
-        corruption_accs.append(test_acc)
-        print('{}\n\tTest Loss {:.3f} | Test Error {:.3f}'
-              .format(corruption, test_loss, 100 - 100. * test_acc))
-
-    return np.mean(corruption_accs)
-
-
 def main():
     torch.manual_seed(1)
     np.random.seed(1)
@@ -252,78 +220,38 @@ def main():
     if args.dataset == 'cifar10':
         train_data = datasets.CIFAR10(args.data_dir, train=True, transform=train_transform, download=True)
         test_data = datasets.CIFAR10(args.data_dir, train=False, transform=test_transform, download=True)
-        base_c_path = './data/cifar/CIFAR-10-C/'
         num_classes = 10
     else:
         train_data = datasets.CIFAR100(args.data_dir, train=True, transform=train_transform, download=True)
         test_data = datasets.CIFAR100(args.data_dir, train=False, transform=test_transform, download=True)
-        base_c_path = './data/cifar/CIFAR-100-C/'
         num_classes = 100
 
     train_data = AugMixDataset(train_data, preprocess, args.no_jsd)
-    train_loader = torch.utils.data.DataLoader(
-        train_data,
-        batch_size=args.batch_size,
-        shuffle=True,
-        num_workers=args.num_workers,
-        pin_memory=True)
-
-    test_loader = torch.utils.data.DataLoader(
-        test_data,
-        batch_size=args.eval_batch_size,
-        shuffle=False,
-        num_workers=args.num_workers,
-        pin_memory=True)
+    train_loader = torch.utils.data.DataLoader(train_data, batch_size=args.batch_size, shuffle=True,
+                                               num_workers=args.num_workers, pin_memory=True)
+    test_loader = torch.utils.data.DataLoader(test_data, batch_size=args.eval_batch_size, shuffle=False,
+                                              num_workers=args.num_workers, pin_memory=True)
 
     # Create model
-    assert args.model == 'allconv', "Another option is not supported."
-    net = AllConvNet(num_classes)
-
-    optimizer = torch.optim.SGD(
-        net.parameters(),
-        args.learning_rate,
-        momentum=args.momentum,
-        weight_decay=args.decay,
-        nesterov=True)
+    net = models.__dict__[args.arch](num_classes).cuda()
+    optimizer = torch.optim.SGD(net.parameters(), args.learning_rate, momentum=args.momentum,
+                                weight_decay=args.decay, nesterov=True)
 
     # Distribute model across all visible GPUs
     net = torch.nn.DataParallel(net).cuda()
     cudnn.benchmark = True
 
     start_epoch = 0
-
-    if args.resume:
-        if os.path.isfile(args.resume):
-            checkpoint = torch.load(args.resume)
-            start_epoch = checkpoint['epoch'] + 1
-            best_acc = checkpoint['best_acc']
-            net.load_state_dict(checkpoint['state_dict'])
-            optimizer.load_state_dict(checkpoint['optimizer'])
-            print('Model restored from epoch:', start_epoch)
-
-    if args.evaluate:
-        # Evaluate clean accuracy first because test_c mutates underlying data
-        test_loss, test_acc = test(net, test_loader)
-        print('Clean\n\tTest Loss {:.3f} | Test Error {:.2f}'.format(test_loss, 100 - 100. * test_acc))
-
-        test_c_acc = test_c(net, test_data, base_c_path)
-        print('Mean Corruption Error: {:.3f}'.format(100 - 100. * test_c_acc))
-        return
-
-    scheduler = torch.optim.lr_scheduler.LambdaLR(
-        optimizer,
-        lr_lambda=lambda step: get_lr(  # pylint: disable=g-long-lambda
-            step,
-            args.epochs * len(train_loader),
-            1,  # lr_lambda computes multiplicative factor
-            1e-6 / args.learning_rate))
+    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer,
+                                                  lr_lambda=lambda step: get_lr(step, args.epochs * len(train_loader),
+                                                                                1, 1e-6 / args.learning_rate))
 
     if not os.path.exists(args.result_dir):
         os.makedirs(args.result_dir)
     if not os.path.isdir(args.result_dir):
         raise Exception('%s is not a dir' % args.result_dir)
 
-    log_path = os.path.join(args.result_dir, args.dataset + '_' + args.model + '_training_log.csv')
+    log_path = os.path.join(args.result_dir, args.dataset + '_' + args.arch + '_training_log.csv')
     with open(log_path, 'w') as f:
         f.write('epoch,time(s),train_loss,test_loss,test_error(%)\n')
 
@@ -340,7 +268,7 @@ def main():
         checkpoint = {
             'epoch': epoch,
             'dataset': args.dataset,
-            'model': args.model,
+            'model': args.arch,
             'state_dict': net.state_dict(),
             'best_acc': best_acc,
             'optimizer': optimizer.state_dict(),
@@ -360,17 +288,8 @@ def main():
                 100 - 100. * test_acc,
             ))
 
-        print(
-            'Epoch {0:3d} | Time {1:5d} | Train Loss {2:.4f} | Test Loss {3:.3f} |'
-            ' Test Error {4:.2f}'
-            .format((epoch + 1), int(time.time() - begin_time), train_loss_ema,test_loss, 100 - 100. * test_acc))
-
-    test_c_acc = test_c(net, test_data, base_c_path)
-    print('Mean Corruption Error: {:.3f}'.format(100 - 100. * test_c_acc))
-
-    with open(log_path, 'a') as f:
-        f.write('%03d,%05d,%0.6f,%0.5f,%0.2f\n' %
-                (args.epochs + 1, 0, 0, 0, 100 - 100 * test_c_acc))
+        print('Epoch {0:3d} | Time {1:5d} | Train Loss {2:.4f} | Test Loss {3:.3f} | Test Error {4:.2f}'
+              .format((epoch + 1), int(time.time() - begin_time), train_loss_ema, test_loss, 100 - 100. * test_acc))
 
 
 if __name__ == '__main__':

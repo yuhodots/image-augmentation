@@ -4,6 +4,8 @@ Reproduce Manifold Mixup(Verma, Vikas, et al.) and AugMix(Hendrycks, Dan, et al.
 ## TODOs
 
 - [ ] PreActResNet-20 코드에 오류 없는지 검토 필요
+- [ ] mixup, augmix 폴더를 utils로 rename하고, main.py를 하나로 통합하기
+  - script에서 실험 옵션 세부적으로 적용할 수 있도록 수정
 
 ## How to Run
 
@@ -24,14 +26,15 @@ python summary.py
 
 ### CIFAR-100
 
-|                                 | Reproduce | Paper  | Clustering quality |
-| ------------------------------- | --------- | ------ | ------------------ |
-| ResNet-20                       |           | -      |                    |
-| ResNet-18                       |           |        |                    |
-| Manifold Mixup, PreActResNet-20 |           | -      |                    |
-| Manifold Mixup, PreActResNet-18 |           | 79.66% |                    |
-| AugMix, PreActResNet-20         |           | -      |                    |
-| AugMix, PreActResNet-18         |           |        |                    |
+|                                              | Reproduce | Paper               | Clustering quality |
+| -------------------------------------------- | --------- | ------------------- | ------------------ |
+| ResNet-20                                    |           | -                   |                    |
+| ResNet-18                                    |           | -                   |                    |
+| Manifold Mixup, PreActResNet-20              |           | -                   |                    |
+| Manifold Mixup, PreActResNet-18 (2000 epoch) |           | 79.66% (1200 epoch) |                    |
+| Manifold Mixup, PreActResNet-18 (200 epoch)  |           | 79.66% (1200 epoch) |                    |
+| AugMix, PreActResNet-20                      |           | -                   |                    |
+| AugMix, PreActResNet-18                      |           | -                   |                    |
 
 ## References
 

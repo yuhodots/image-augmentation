@@ -65,7 +65,6 @@ parser.add_argument('--evaluate', dest='evaluate', action='store_true', help='ev
 parser.add_argument('--workers', type=int, default=2, help='number of data loading workers (default: 2)')
 # random seed
 parser.add_argument('--manualSeed', type=int, help='manual seed')
-parser.add_argument('--add_name', type=str, default='')
 parser.add_argument('--job_id', type=str, default='')
 
 args = parser.parse_args()
@@ -328,8 +327,8 @@ def main():
                                          dropout=args.dropout, batch_size=args.batch_size,
                                          lr=args.learning_rate, momentum=args.momentum, decay=args.decay,
                                          data_aug=args.data_aug, train=args.train, mixup_alpha=args.mixup_alpha,
-                                         job_id=args.job_id, add_name=args.add_name)
-    exp_dir = args.result_dir + exp_name + args.memo
+                                         job_id=args.job_id, add_name=args.memo)
+    exp_dir = args.result_dir + exp_name
     if args.partial_class:
         exp_dir += f"_partial_class_{str(args.partial_class_indices)}"
 

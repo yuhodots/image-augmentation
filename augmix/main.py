@@ -54,43 +54,80 @@ parser.add_argument('--dataset', type=str, default='cifar100',
 parser.add_argument('--data_dir', type=str, default='cifar10', help='dataset directory path')
 parser.add_argument('--arch', metavar='ARCH', default='preactresnet18', choices=model_names,
                     help='model architecture: ' + ' | '.join(model_names) + ' (default: preactresnet18)')
+parser.add_argument('--memo', type=str, default='')
 
 # Optimization options
 parser.add_argument('--epochs', '-e', type=int, default=100, help='Number of epochs to train.')
-parser.add_argument('--learning-rate', '-lr', type=float, default=0.1, help='Initial learning rate.')
-parser.add_argument('--batch-size', '-b', type=int, default=128, help='Batch size.')
-parser.add_argument('--eval-batch-size', type=int, default=1000)
+parser.add_argument('--learning_rate', '-lr', type=float, default=0.1, help='Initial learning rate.')
+parser.add_argument('--batch_size', '-b', type=int, default=128, help='Batch size.')
+parser.add_argument('--eval_batch_size', type=int, default=1000)
 parser.add_argument('--momentum', type=float, default=0.9, help='Momentum.')
 parser.add_argument('--decay', '-wd', type=float, default=0.0005, help='Weight decay (L2 penalty).')
+parser.add_argument('--schedule', type=int, nargs='+', default=[150, 225],
+                    help='Decrease learning rate at these epochs.')
+parser.add_argument('--gammas', type=float, nargs='+', default=[0.1, 0.1],
+                    help='LR is multiplied by gamma on schedule, number of gammas should be equal to schedule')
 
 # WRN Architecture options
 parser.add_argument('--layers', default=40, type=int, help='total number of layers')
-parser.add_argument('--widen-factor', default=2, type=int, help='Widen factor')
+parser.add_argument('--widen_factor', default=2, type=int, help='Widen factor')
 parser.add_argument('--droprate', default=0.0, type=float, help='Dropout probability')
 
 # AugMix options
-parser.add_argument('--mixture-width', default=3, type=int,
+parser.add_argument('--mixture_width', default=3, type=int,
                     help='Number of augmentation chains to mix per augmented example')
-parser.add_argument('--mixture-depth', default=-1, type=int,
+parser.add_argument('--mixture_depth', default=-1, type=int,
                     help='Depth of augmentation chains. -1 denotes stochastic depth in [1, 3]')
-parser.add_argument('--aug-severity', default=3, type=int, help='Severity of base augmentation operators')
-parser.add_argument('--no-jsd', '-nj', action='store_true', help='Turn off JSD consistency loss.')
-parser.add_argument('--all-ops', '-all', action='store_true',
+parser.add_argument('--aug_severity', default=3, type=int, help='Severity of base augmentation operators')
+parser.add_argument('--no_jsd', '-nj', action='store_true', help='Turn off JSD consistency loss.')
+parser.add_argument('--all_ops', '-all', action='store_true',
                     help='Turn on all operations (+brightness,contrast,color,sharpness).')
 
 # Checkpointing options
 parser.add_argument('--result_dir', '-s', type=str, default='results/augmix/', help='Folder to save checkpoints.')
-parser.add_argument('--print-freq', type=int, default=50, help='Training loss print frequency (batches).')
+parser.add_argument('--print_freq', type=int, default=50, help='Training loss print frequency (batches).')
 
 # Acceleration
-parser.add_argument('--num-workers', type=int, default=4, help='Number of pre-fetching threads.')
+parser.add_argument('--num_workers', type=int, default=4, help='Number of pre-fetching threads.')
 
 args = parser.parse_args()
 
 
-def get_lr(step, total_steps, lr_max, lr_min):
-    """Compute learning rate according to cosine annealing schedule."""
-    return lr_min + (lr_max - lr_min) * 0.5 * (1 + np.cos(step / total_steps * np.pi))
+def experiment_name_non_mnist(dataset='cifar100',
+                              arch='',
+                              epochs=400,
+                              batch_size=64,
+                              lr=0.01,
+                              momentum=0.5,
+                              decay=0.0005,
+                              add_name=''):
+    exp_name = dataset
+    exp_name += '_arch_' + str(arch)
+    exp_name += '_train_' + str(train)
+    exp_name += '_eph_' + str(epochs)
+    exp_name += '_bs_' + str(batch_size)
+    exp_name += '_lr_' + str(lr)
+    exp_name += '_mom_' + str(momentum)
+    exp_name += '_decay_' + str(decay)
+    if add_name != '':
+        exp_name += '_add_name_' + str(add_name)
+    # exp_name += strftime("_%Y-%m-%d_%H:%M:%S", gmtime())
+    print('experiement name: ' + exp_name)
+    return exp_name
+
+
+def adjust_learning_rate(optimizer, epoch, gammas, schedule):
+    """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
+    lr = args.learning_rate
+    assert len(gammas) == len(schedule), "length of gammas and schedule should be equal"
+    for (gamma, step) in zip(gammas, schedule):
+        if (epoch >= step):
+            lr = lr * gamma
+        else:
+            break
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
+    return lr
 
 
 def aug(image, preprocess):
@@ -144,7 +181,7 @@ class AugMixDataset(torch.utils.data.Dataset):
         return len(self.dataset)
 
 
-def train(net, train_loader, optimizer, scheduler):
+def train(net, train_loader, optimizer):
     """Train for one epoch."""
     net.train()
     loss_ema = 0.
@@ -178,7 +215,6 @@ def train(net, train_loader, optimizer, scheduler):
 
         loss.backward()
         optimizer.step()
-        scheduler.step()
         loss_ema = loss_ema * 0.9 + float(loss) * 0.1
         if i % args.print_freq == 0:
             print('Train Loss {:.3f}'.format(loss_ema))
@@ -240,18 +276,19 @@ def main():
     # Distribute model across all visible GPUs
     net = torch.nn.DataParallel(net).cuda()
     cudnn.benchmark = True
-
     start_epoch = 0
-    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer,
-                                                  lr_lambda=lambda step: get_lr(step, args.epochs * len(train_loader),
-                                                                                1, 1e-6 / args.learning_rate))
 
-    if not os.path.exists(args.result_dir):
-        os.makedirs(args.result_dir)
-    if not os.path.isdir(args.result_dir):
-        raise Exception('%s is not a dir' % args.result_dir)
+    # Result path
+    exp_name = experiment_name_non_mnist(dataset=args.dataset, arch=args.arch, epochs=args.epochs,
+                                         batch_size=args.batch_size, lr=args.learning_rate, momentum=args.momentum,
+                                         decay=args.decay, add_name=args.memo)
+    exp_dir = args.result_dir + exp_name
+    if not os.path.exists(exp_dir):
+        os.makedirs(exp_dir)
+    if not os.path.isdir(exp_dir):
+        raise Exception('%s is not a dir' % exp_dir)
 
-    log_path = os.path.join(args.result_dir, args.dataset + '_' + args.arch + '_training_log.csv')
+    log_path = os.path.join(exp_dir, args.dataset + '_' + args.arch + '_training_log.csv')
     with open(log_path, 'w') as f:
         f.write('epoch,time(s),train_loss,test_loss,test_error(%)\n')
 
@@ -259,8 +296,8 @@ def main():
     print('Beginning training from epoch:', start_epoch + 1)
     for epoch in range(start_epoch, args.epochs):
         begin_time = time.time()
-
-        train_loss_ema = train(net, train_loader, optimizer, scheduler)
+        current_learning_rate = adjust_learning_rate(optimizer, epoch, args.gammas, args.schedule)
+        train_loss_ema = train(net, train_loader, optimizer)
         test_loss, test_acc = test(net, test_loader)
 
         is_best = test_acc > best_acc
@@ -274,10 +311,10 @@ def main():
             'optimizer': optimizer.state_dict(),
         }
 
-        save_path = os.path.join(args.result_dir, 'checkpoint.pth.tar')
+        save_path = os.path.join(exp_dir, 'checkpoint.pth.tar')
         torch.save(checkpoint, save_path)
         if is_best:
-            shutil.copyfile(save_path, os.path.join(args.result_dir, 'model_best.pth.tar'))
+            shutil.copyfile(save_path, os.path.join(exp_dir, 'model_best.pth.tar'))
 
         with open(log_path, 'a') as f:
             f.write('%03d,%05d,%0.6f,%0.5f,%0.2f\n' % (
@@ -288,8 +325,9 @@ def main():
                 100 - 100. * test_acc,
             ))
 
-        print('Epoch {0:3d} | Time {1:5d} | Train Loss {2:.4f} | Test Loss {3:.3f} | Test Error {4:.2f}'
-              .format((epoch + 1), int(time.time() - begin_time), train_loss_ema, test_loss, 100 - 100. * test_acc))
+        print('Epoch {0:3d} | Time {1:5d} | Train Loss {2:.4f} | Test Loss {3:.3f} | Test Error {4:.2f} | LR {5}'
+              .format((epoch + 1), int(time.time() - begin_time), train_loss_ema, test_loss,
+                      100 - 100. * test_acc, current_learning_rate))
 
 
 if __name__ == '__main__':

@@ -129,6 +129,17 @@ def set_gpu(gpu_id):
     os.environ['CUDA_VISIBLE_DEVICES'] = gpu_id
 
 
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise AssertionError("Boolean value is expected")
+
+
 def time_string():
     ISOTIMEFORMAT = '%Y-%m-%d %X'
     string = '[{}]'.format(time.strftime(ISOTIMEFORMAT, time.gmtime(time.time())))

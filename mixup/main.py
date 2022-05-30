@@ -34,6 +34,8 @@ parser.add_argument('--valid_labels_per_class', type=int, default=0, metavar='NL
 parser.add_argument('--arch', metavar='ARCH', default='resnext29_8_64', choices=model_names,
                     help='model architecture: ' + ' | '.join(model_names) + ' (default: resnext29_8_64)')
 parser.add_argument('--initial_channels', type=int, default=64, choices=(16, 64))
+parser.add_argument('--partial_class', type=str2bool, default=False, help='use only partial class of dataset')
+parser.add_argument('--partial_class_indices', type=int, default=60)
 parser.add_argument('--memo', type=str, default='')
 # Optimization options
 parser.add_argument('--epochs', type=int, default=300, help='Number of epochs to train.')
@@ -328,6 +330,8 @@ def main():
                                          data_aug=args.data_aug, train=args.train, mixup_alpha=args.mixup_alpha,
                                          job_id=args.job_id, add_name=args.add_name)
     exp_dir = args.result_dir + exp_name + args.memo
+    if args.partial_class:
+        exp_dir += f"_partial_class_{str(args.partial_class_indices)}"
 
     if not os.path.exists(exp_dir):
         os.makedirs(exp_dir)
@@ -347,18 +351,19 @@ def main():
     print_log("torch  version : {}".format(torch.__version__), log)
     print_log("cudnn  version : {}".format(torch.backends.cudnn.version()), log)
 
-    if args.adv_unpre:
-        per_img_std = True
-        train_loader, valid_loader, _, test_loader, num_classes = \
-            load_data_subset_unpre(args.data_aug, args.batch_size, 2, args.dataset, args.data_dir,
-                                   labels_per_class=args.labels_per_class,
-                                   valid_labels_per_class=args.valid_labels_per_class)
-    else:
-        per_img_std = False
-        train_loader, valid_loader, _, test_loader, num_classes = \
-            load_data_subset(args.data_aug, args.batch_size, 2, args.dataset, args.data_dir,
-                             labels_per_class=args.labels_per_class,
-                             valid_labels_per_class=args.valid_labels_per_class)
+    # if args.adv_unpre:
+    #     per_img_std = True
+    #     train_loader, valid_loader, _, test_loader, num_classes = \
+    #         load_data_subset_unpre(args.data_aug, args.batch_size, 2, args.dataset, args.data_dir,
+    #                                labels_per_class=args.labels_per_class,
+    #                                valid_labels_per_class=args.valid_labels_per_class)
+    # else:
+
+    per_img_std = False
+    train_loader, valid_loader, _, test_loader, num_classes = \
+        load_data_subset(args.data_aug, args.batch_size, 2, args.dataset, args.data_dir,
+                         args.partial_class, args.partial_class_indices,
+                         labels_per_class=args.labels_per_class, valid_labels_per_class=args.valid_labels_per_class)
 
     if args.dataset == 'tiny-imagenet-200':
         stride = 2

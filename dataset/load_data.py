@@ -1,6 +1,27 @@
+import numpy as np
 import torch
 import os
 from torchvision import datasets, transforms
+
+
+def select_from_default(dataset, index):
+    data = dataset.data
+    targets = np.asarray(dataset.targets)
+
+    data_tmp = []
+    targets_tmp = []
+    for i in index:
+        ind_cl = np.where(i == targets)[0]
+        if data_tmp == []:
+            data_tmp = data[ind_cl]
+            targets_tmp = targets[ind_cl]
+        else:
+            data_tmp = np.vstack((data_tmp, data[ind_cl]))
+            targets_tmp = np.hstack((targets_tmp, targets[ind_cl]))
+
+    dataset.data = data_tmp
+    dataset.targets = targets_tmp
+    return dataset
 
 
 def load_data(data_aug, batch_size, workers, dataset, data_target_dir):
@@ -65,8 +86,9 @@ def load_data(data_aug, batch_size, workers, dataset, data_target_dir):
     return train_loader, test_loader, num_classes
 
 
-def load_data_subset(data_aug, batch_size, workers, dataset, data_target_dir, labels_per_class=100,
-                     valid_labels_per_class=500):
+def load_data_subset(data_aug, batch_size, workers, dataset, data_target_dir,
+                     partial_class, partial_class_indices,
+                     labels_per_class=100, valid_labels_per_class=500):
     ## copied from GibbsNet_pytorch/load.py
     import numpy as np
     from functools import reduce
@@ -176,6 +198,12 @@ def load_data_subset(data_aug, batch_size, workers, dataset, data_target_dir, la
         assert False, 'Do not finish imagenet code'
     else:
         assert False, 'Do not support dataset : {}'.format(dataset)
+
+    if partial_class:
+        assert dataset == 'cifar100', "Only CIFAR-100 is supported now."
+        num_classes = partial_class_indices
+        train_data = select_from_default(train_data, np.arange(partial_class_indices))
+        test_data = select_from_default(test_data, np.arange(partial_class_indices))
 
     n_labels = num_classes
 

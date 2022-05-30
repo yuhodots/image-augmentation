@@ -105,7 +105,7 @@ class PreActResNet(nn.Module):
             x = per_image_standardization(x)
 
         if mixup_hidden:
-            layer_mix = random.randint(0, 2)
+            layer_mix = random.randint(0, 3)
         elif mixup:
             layer_mix = 0
         else:

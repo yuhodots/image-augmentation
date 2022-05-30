@@ -1,45 +1,6 @@
 import torch
 import os
 from torchvision import datasets, transforms
-from dataset.affine_transforms import Rotation, Zoom
-
-
-def load_mnist(data_aug, batch_size, test_batch_size, cuda, data_target_dir):
-    if data_aug == 1:
-        hw_size = 24
-        transform_train = transforms.Compose([
-            transforms.RandomCrop(hw_size),
-            transforms.ToTensor(),
-            Rotation(15),
-            Zoom((0.85, 1.15)),
-            transforms.Normalize((0.1307,), (0.3081,))
-        ])
-        transform_test = transforms.Compose([
-            transforms.CenterCrop(hw_size),
-            transforms.ToTensor(),
-            transforms.Normalize((0.1307,), (0.3081,))
-        ])
-    else:
-        hw_size = 28
-        transform_train = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.1307,), (0.3081,))
-        ])
-        transform_test = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.1307,), (0.3081,))
-        ])
-
-    kwargs = {'num_workers': 0, 'pin_memory': True} if cuda else {}
-
-    train_loader = torch.utils.data.DataLoader(
-        datasets.MNIST(data_target_dir, train=True, download=True, transform=transform_train),
-        batch_size=batch_size, shuffle=True, **kwargs)
-    test_loader = torch.utils.data.DataLoader(
-        datasets.MNIST(data_target_dir, train=False, transform=transform_test),
-        batch_size=test_batch_size, shuffle=True, **kwargs)
-
-    return train_loader, test_loader
 
 
 def load_data(data_aug, batch_size, workers, dataset, data_target_dir):

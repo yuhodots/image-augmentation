@@ -33,28 +33,6 @@ python summary.py
 | AugMix, PreActResNet-20         |           | -      |                    |
 | AugMix, PreActResNet-18         |           |        |                    |
 
-### miniImageNet
-
-|                                 | Reproduce | Clustering quality |
-| ------------------------------- | --------- | ------------------ |
-| ResNet-20                       |           |                    |
-| ResNet-18                       |           |                    |
-| Manifold Mixup, PreActResNet-20 |           |                    |
-| Manifold Mixup, PreActResNet-18 |           |                    |
-| AugMix, PreActResNet-20         |           |                    |
-| AugMix, PreActResNet-18         |           |                    |
-
-### CUB-200
-
-|                                 | Reproduce | Clustering quality |
-| ------------------------------- | --------- | ------------------ |
-| ResNet-20                       |           |                    |
-| ResNet-18                       |           |                    |
-| Manifold Mixup, PreActResNet-20 |           |                    |
-| Manifold Mixup, PreActResNet-18 |           |                    |
-| AugMix, PreActResNet-20         |           |                    |
-| AugMix, PreActResNet-18         |           |                    |
-
 ## References
 
 - Manifold Mixup: https://github.com/vikasverma1077/manifold_mixup

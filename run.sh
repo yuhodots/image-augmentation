@@ -30,8 +30,8 @@ if [ "${option}" = "CIFAR-10 & Manifold mixup Preactresnet18" ]; then
         --momentum 0.9 \
         --decay 0.0001 \
         --epochs 2000 \
-        --schedule 500 1000 1500 \
-        --gammas 0.1 0.1 0.1 \
+        --schedule 1000 1500 \
+        --gammas 0.1 0.1 \
         --train mixup_hidden \
         --mixup_alpha 2.0
 elif [ "${option}" = "CIFAR-100 & Manifold mixup Preactresnet18" ]; then
@@ -45,8 +45,8 @@ elif [ "${option}" = "CIFAR-100 & Manifold mixup Preactresnet18" ]; then
         --momentum 0.9 \
         --decay 0.0001 \
         --epochs 2000 \
-        --schedule 500 1000 1500 \
-        --gammas 0.1 0.1 0.1 \
+        --schedule 1000 1500 \
+        --gammas 0.1 0.1 \
         --train mixup_hidden \
         --mixup_alpha 2.0
 elif [ "${option}" = "CIFAR-100 & Manifold mixup Preactresnet20" ]; then
@@ -60,8 +60,8 @@ elif [ "${option}" = "CIFAR-100 & Manifold mixup Preactresnet20" ]; then
         --momentum 0.9 \
         --decay 0.0001 \
         --epochs 2000 \
-        --schedule 500 1000 1500 \
-        --gammas 0.1 0.1 0.1 \
+        --schedule 1000 1500 \
+        --gammas 0.1 0.1 \
         --train mixup_hidden \
         --mixup_alpha 2.0
 else

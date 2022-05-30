@@ -34,6 +34,7 @@ parser.add_argument('--valid_labels_per_class', type=int, default=0, metavar='NL
 parser.add_argument('--arch', metavar='ARCH', default='resnext29_8_64', choices=model_names,
                     help='model architecture: ' + ' | '.join(model_names) + ' (default: resnext29_8_64)')
 parser.add_argument('--initial_channels', type=int, default=64, choices=(16, 64))
+parser.add_argument('--memo', type=str, default='')
 # Optimization options
 parser.add_argument('--epochs', type=int, default=300, help='Number of epochs to train.')
 parser.add_argument('--train', type=str, default='vanilla', choices=['vanilla', 'mixup', 'mixup_hidden', 'cutout'])
@@ -326,7 +327,7 @@ def main():
                                          lr=args.learning_rate, momentum=args.momentum, decay=args.decay,
                                          data_aug=args.data_aug, train=args.train, mixup_alpha=args.mixup_alpha,
                                          job_id=args.job_id, add_name=args.add_name)
-    exp_dir = args.result_dir + exp_name
+    exp_dir = args.result_dir + exp_name + args.memo
 
     if not os.path.exists(exp_dir):
         os.makedirs(exp_dir)

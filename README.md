@@ -1,6 +1,10 @@
 # Image-augmentation
 Reproduce Manifold Mixup(Verma, Vikas, et al.) and AugMix(Hendrycks, Dan, et al.)
 
+## TODOs
+
+- [ ] PreActResNet-20 코드에 오류 없는지 검토 필요
+
 ## How to Run
 
 You can run the script file below to select experimental options.

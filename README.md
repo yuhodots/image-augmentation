@@ -9,8 +9,6 @@ Reproduce Manifold Mixup(Verma, Vikas, et al.) and AugMix(Hendrycks, Dan, et al.
 
 ## How to Run
 
-You can run the script file below to select experimental options.
-
 ```shell
 TBU
 ```
@@ -27,14 +25,15 @@ python summary.py
 ### CIFAR-100
 
 |                                              | Reproduce | Paper               | Clustering quality |
-| -------------------------------------------- | --------- | ------------------- | ------------------ |
-| ResNet-20                                    |           | -                   |                    |
-| ResNet-18                                    |           | -                   |                    |
-| Manifold Mixup, PreActResNet-20              |           | -                   |                    |
+|----------------------------------------------| --------- | ------------------- | ------------------ |
+| ResNet-20 (200 epoch)                        |           | -                   |                    |
+| ResNet-18 (200 epoch)                        |           | -                   |                    |
+| Manifold Mixup, PreActResNet-20 (2000 epoch) |           | -                   |                    |
+| Manifold Mixup, PreActResNet-20 (200 epoch)  |           | -                   |                    |
 | Manifold Mixup, PreActResNet-18 (2000 epoch) |           | 79.66% (1200 epoch) |                    |
 | Manifold Mixup, PreActResNet-18 (200 epoch)  |           | 79.66% (1200 epoch) |                    |
-| AugMix, PreActResNet-20                      |           | -                   |                    |
-| AugMix, PreActResNet-18                      |           | -                   |                    |
+| AugMix, PreActResNet-20 (200 epoch)          |           | -                   |                    |
+| AugMix, PreActResNet-18 (200 epoch)          |           | -                   |                    |
 
 ## References
 

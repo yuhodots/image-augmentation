@@ -1,16 +1,20 @@
 # Image-augmentation
 Reproduce Manifold Mixup(Verma, Vikas, et al.) and AugMix(Hendrycks, Dan, et al.)
 
-## TODOs
-
-- [ ] PreActResNet-20 코드에 오류 없는지 검토 필요
-- [ ] mixup, augmix 폴더를 utils로 rename하고, main.py를 하나로 통합하기
-  - script에서 실험 옵션 세부적으로 적용할 수 있도록 수정
-
 ## How to Run
 
+1. CIFAR-100 with Manifold Mixup
+
 ```shell
-TBU
+cd mixup
+./run.sh
+```
+
+1. CIFAR-100 with AugMix
+
+```shell
+cd augmix
+./run.sh
 ```
 
 You can check the summary of model architecture by using `models/summary.py` file.

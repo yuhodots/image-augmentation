@@ -28,15 +28,15 @@ python summary.py
 
 ### CIFAR-100
 
-|                                              | Reproduce | Paper               | Clustering quality |
-| -------------------------------------------- | --------- | ------------------- | ------------------ |
-| ResNet-20 (200 epoch)                        |           | -                   |                    |
-| ResNet-18 (200 epoch)                        |           | -                   |                    |
-| Manifold Mixup, PreActResNet-20 (2000 epoch) |           | -                   |                    |
-| Manifold Mixup, PreActResNet-18 (2000 epoch) |           | 79.66% (1200 epoch) |                    |
-| Manifold Mixup, PreActResNet-18 (200 epoch)  |           | 79.66% (1200 epoch) |                    |
-| AugMix, PreActResNet-20 (200 epoch)          |           | -                   |                    |
-| AugMix, PreActResNet-18 (200 epoch)          |           | -                   |                    |
+| Experiment option                                            | Reproduce | Paper               | Clustering quality |
+| ------------------------------------------------------------ | --------- | ------------------- | ------------------ |
+| ResNet-20<br/>(240 epoch)                                    |           | -                   |                    |
+| ResNet-18<br/>(240 epoch)                                    |           | -                   |                    |
+| Manifold Mixup, PreActResNet-20<br>(2000 epoch, original_repo_ver) |           | -                   |                    |
+| Manifold Mixup, PreActResNet-18<br/>(2000 epoch, original_repo_ver) |           | 79.66% (1200 epoch) |                    |
+| Manifold Mixup, PreActResNet-18<br/>(200 epoch, fast_ver)    |           | 79.66% (1200 epoch) |                    |
+| AugMix, PreActResNet-20<br/>(200 epoch)                      |           | -                   |                    |
+| AugMix, PreActResNet-18<br/>(200 epoch)                      |           | -                   |                    |
 
 ## References
 

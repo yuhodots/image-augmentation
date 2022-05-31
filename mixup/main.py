@@ -17,6 +17,8 @@ import models
 from collections import OrderedDict
 from dataset.load_data import *
 from plots import *
+import torch.multiprocessing
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("__")
@@ -51,7 +53,7 @@ parser.add_argument('--momentum', type=float, default=0.9, help='Momentum.')
 parser.add_argument('--data_aug', type=int, default=1)
 parser.add_argument('--adv_unpre', action='store_true', default=False,
                     help='the adversarial examples will be calculated on real input space (not preprocessed)')
-parser.add_argument('--decay', type=float, default=0.0001, help='Weight decay (L2 penalty).')
+parser.add_argument('--decay', type=float, default=0.0005, help='Weight decay (L2 penalty).')
 parser.add_argument('--schedule', type=int, nargs='+', default=[150, 225],
                     help='Decrease learning rate at these epochs.')
 parser.add_argument('--gammas', type=float, nargs='+', default=[0.1, 0.1],

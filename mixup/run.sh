@@ -102,7 +102,6 @@ elif [ "${EXP}" = "CIFAR-100 & Manifold mixup Preactresnet20 (paper ver.)" ]; th
         --arch preactresnet20  \
         --learning_rate 0.1 \
         --momentum 0.9 \
-        --decay 0.0001 \
         --epochs 2000 \
         --schedule 1000 1500 \
         --gammas 0.1 0.1 \
@@ -118,12 +117,12 @@ elif [ "${EXP}" = "CIFAR-100 & Manifold mixup Preactresnet20 (fast train ver.)" 
         --result_dir results/mixup/ \
         --labels_per_class 500 \
         --arch preactresnet20  \
+        --batch_size 256 \
         --learning_rate 0.1 \
         --momentum 0.9 \
-        --decay 0.0001 \
-        --epochs 200 \
-        --schedule 100 150 \
-        --gammas 0.1 0.1 \
+        --epochs 240 \
+        --schedule 120 \
+        --gammas 0.01 \
         --train mixup_hidden \
         --mixup_alpha 2.0 \
         --partial_class ${PCB} \

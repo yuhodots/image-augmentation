@@ -39,6 +39,7 @@ GPU="${num}"
 
 # Run python file
 cd ../
+# Best top1 acc: TBU% (100 class), TBU% (60 class)
 if [ "${EXP}" = "CIFAR-100 & Manifold mixup Preactresnet18 (original repo ver.)" ]; then
     CUDA_VISIBLE_DEVICES=${GPU} python mixup/main.py \
         --dataset cifar100 \
@@ -57,6 +58,7 @@ if [ "${EXP}" = "CIFAR-100 & Manifold mixup Preactresnet18 (original repo ver.)"
         --partial_class ${PCB} \
         --partial_class_indices ${PCI} \
         --memo original_repo_ver
+# Best top1 acc: TBU% (100 class), TBU% (60 class)
 elif [ "${EXP}" = "CIFAR-100 & Manifold mixup Preactresnet18 (paper ver.)" ]; then
     CUDA_VISIBLE_DEVICES=${GPU} python mixup/main.py \
         --dataset cifar100 \
@@ -75,6 +77,7 @@ elif [ "${EXP}" = "CIFAR-100 & Manifold mixup Preactresnet18 (paper ver.)" ]; th
         --partial_class ${PCB} \
         --partial_class_indices ${PCI} \
         --memo paper_ver
+# Best top1 acc: TBU% (100 class), TBU% (60 class)
 elif [ "${EXP}" = "CIFAR-100 & Manifold mixup Preactresnet18 (fast train ver.)" ]; then
     CUDA_VISIBLE_DEVICES=${GPU} python mixup/main.py \
         --dataset cifar100 \
@@ -93,6 +96,7 @@ elif [ "${EXP}" = "CIFAR-100 & Manifold mixup Preactresnet18 (fast train ver.)" 
         --partial_class ${PCB} \
         --partial_class_indices ${PCI} \
         --memo fast_train_ver
+# Best top1 acc: TBU% (100 class), TBU% (60 class)
 elif [ "${EXP}" = "CIFAR-100 & Manifold mixup Preactresnet20 (paper ver.)" ]; then
     CUDA_VISIBLE_DEVICES=${GPU} python mixup/main.py \
         --dataset cifar100 \
@@ -102,6 +106,7 @@ elif [ "${EXP}" = "CIFAR-100 & Manifold mixup Preactresnet20 (paper ver.)" ]; th
         --arch preactresnet20  \
         --learning_rate 0.1 \
         --momentum 0.9 \
+        --decay 0.0001 \
         --epochs 2000 \
         --schedule 1000 1500 \
         --gammas 0.1 0.1 \
@@ -110,6 +115,7 @@ elif [ "${EXP}" = "CIFAR-100 & Manifold mixup Preactresnet20 (paper ver.)" ]; th
         --partial_class ${PCB} \
         --partial_class_indices ${PCI} \
         --memo paper_ver
+# Best top1 acc: TBU% (100 class), TBU% (60 class)
 elif [ "${EXP}" = "CIFAR-100 & Manifold mixup Preactresnet20 (fast train ver.)" ]; then
     CUDA_VISIBLE_DEVICES=${GPU} python mixup/main.py \
         --dataset cifar100 \
@@ -120,9 +126,10 @@ elif [ "${EXP}" = "CIFAR-100 & Manifold mixup Preactresnet20 (fast train ver.)" 
         --batch_size 256 \
         --learning_rate 0.1 \
         --momentum 0.9 \
-        --epochs 240 \
-        --schedule 120 \
-        --gammas 0.01 \
+        --decay 0.0001 \
+        --epochs 200 \
+        --schedule 100 150 \
+        --gammas 0.1 0.1 \
         --train mixup_hidden \
         --mixup_alpha 2.0 \
         --partial_class ${PCB} \

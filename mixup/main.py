@@ -239,11 +239,8 @@ def train(train_loader, model, optimizer, epoch, args, log):
             """
         elif args.train == 'vanilla':
             input_var, target_var = Variable(input), Variable(target)
-            output, reweighted_target = model(input_var, target_var)
-            # loss = criterion(output, target_var)
-            # target_one_hot = to_one_hot(target_var, args.num_classes)
-            loss = bce_loss(softmax(output), reweighted_target)
-
+            output = model(input_var)
+            loss = criterion(output, target_var)
 
         elif args.train == 'cutout':
             cutout = Cutout(1, args.cutout)
@@ -374,7 +371,11 @@ def main():
     # load_data_subset(args.data_aug, args.batch_size, 2, args.dataset, args.data_dir, 0.0, labels_per_class=5000)
 
     print_log("=> creating model '{}'".format(args.arch), log)
-    net = models.__dict__[args.arch](num_classes, args.dropout, per_img_std, stride).cuda()
+    if (args.arch == "resnet18") or (args.arch == "resnet20"):
+        net = models.__dict__[args.arch](num_classes=num_classes).cuda()
+    else:
+        net = models.__dict__[args.arch](num_classes=num_classes, dropout=args.dropout,
+                                         per_img_std=per_img_std, stride=stride).cuda()
     print_log("=> network :\n {}".format(net), log)
     args.num_classes = num_classes
 

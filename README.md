@@ -29,11 +29,10 @@ python summary.py
 ### CIFAR-100
 
 |                                              | Reproduce | Paper               | Clustering quality |
-|----------------------------------------------| --------- | ------------------- | ------------------ |
+| -------------------------------------------- | --------- | ------------------- | ------------------ |
 | ResNet-20 (200 epoch)                        |           | -                   |                    |
 | ResNet-18 (200 epoch)                        |           | -                   |                    |
 | Manifold Mixup, PreActResNet-20 (2000 epoch) |           | -                   |                    |
-| Manifold Mixup, PreActResNet-20 (200 epoch)  |           | -                   |                    |
 | Manifold Mixup, PreActResNet-18 (2000 epoch) |           | 79.66% (1200 epoch) |                    |
 | Manifold Mixup, PreActResNet-18 (200 epoch)  |           | 79.66% (1200 epoch) |                    |
 | AugMix, PreActResNet-20 (200 epoch)          |           | -                   |                    |

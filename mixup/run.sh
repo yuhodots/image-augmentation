@@ -1,11 +1,12 @@
 #!/bin/bash
 
 # Experiment options
-exp_opt=("CIFAR-100 |    No Mixup    |    ResNet18    : original repo ver." \
-         "CIFAR-100 |    No Mixup    |    ResNet20    : original repo ver." \
+exp_opt=("CIFAR-100 |    No Mixup    |    ResNet18" \
+         "CIFAR-100 |    No Mixup    |    ResNet20" \
          "CIFAR-100 | Manifold Mixup | Preactresnet18 : original repo ver." \
          "CIFAR-100 | Manifold Mixup | Preactresnet18 : paper ver." \
          "CIFAR-100 | Manifold Mixup | Preactresnet18 : fast train ver." \
+         "CIFAR-100 | Manifold Mixup | Preactresnet20 : original repo ver." \
          "CIFAR-100 | Manifold Mixup | Preactresnet20 : paper ver." \
          "CIFAR-100 | Manifold Mixup | Preactresnet20 : fast train ver.")
 partial_class_opt=("True" "False")
@@ -42,7 +43,7 @@ GPU="${num}"
 # Run python file
 cd ../
 # Best top1 acc: TBU% (100 class), TBU% (60 class)
-if [ "${EXP}" = "CIFAR-100 |    No Mixup    |    ResNet18    : original repo ver." ]; then
+if [ "${EXP}" = "CIFAR-100 |    No Mixup    |    ResNet18" ]; then
     CUDA_VISIBLE_DEVICES=${GPU} python mixup/main.py \
         --dataset cifar100 \
         --data_dir /home/miil/Datasets/FSCIL-CEC \
@@ -60,7 +61,7 @@ if [ "${EXP}" = "CIFAR-100 |    No Mixup    |    ResNet18    : original repo ver
         --partial_class ${PCB} \
         --partial_class_indices ${PCI} \
         --memo original_repo_ver
-elif [ "${EXP}" = "CIFAR-100 |    No Mixup    |    ResNet20    : original repo ver." ]; then
+elif [ "${EXP}" = "CIFAR-100 |    No Mixup    |    ResNet20" ]; then
     CUDA_VISIBLE_DEVICES=${GPU} python mixup/main.py \
         --dataset cifar100 \
         --data_dir /home/miil/Datasets/FSCIL-CEC \
@@ -135,6 +136,25 @@ elif [ "${EXP}" = "CIFAR-100 | Manifold Mixup | Preactresnet18 : fast train ver.
         --partial_class ${PCB} \
         --partial_class_indices ${PCI} \
         --memo fast_train_ver
+# Best top1 acc: TBU% (100 class), TBU% (60 class)
+elif [ "${EXP}" = "CIFAR-100 | Manifold Mixup | Preactresnet20 : original repo ver." ]; then
+    CUDA_VISIBLE_DEVICES=${GPU} python mixup/main.py \
+        --dataset cifar100 \
+        --data_dir /home/miil/Datasets/FSCIL-CEC \
+        --result_dir results/mixup/ \
+        --labels_per_class 500 \
+        --arch preactresnet20  \
+        --learning_rate 0.1 \
+        --momentum 0.9 \
+        --decay 0.0001 \
+        --epochs 2000 \
+        --schedule 500 1000 1500 \
+        --gammas 0.1 0.1 0.1 \
+        --train mixup_hidden \
+        --mixup_alpha 2.0 \
+        --partial_class ${PCB} \
+        --partial_class_indices ${PCI} \
+        --memo original_repo_ver
 # Best top1 acc: TBU% (100 class), TBU% (60 class)
 elif [ "${EXP}" = "CIFAR-100 | Manifold Mixup | Preactresnet20 : paper ver." ]; then
     CUDA_VISIBLE_DEVICES=${GPU} python mixup/main.py \

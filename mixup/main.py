@@ -134,8 +134,8 @@ def save_checkpoint(state, is_best, save_path, filename):
     filename = os.path.join(save_path, filename)
     torch.save(state, filename)
     if is_best:
-        bestname = os.path.join(save_path, 'model_best.pth.tar')
-        shutil.copyfile(filename, bestname)
+        bestname = os.path.join(save_path, 'model_best.pth')
+        torch.save(state, bestname)
 
 
 def adjust_learning_rate(optimizer, epoch, gammas, schedule):
@@ -441,13 +441,7 @@ def main():
             best_acc = val_acc
 
         # save checkpoint
-        save_checkpoint({
-            'epoch': epoch + 1,
-            'arch': args.arch,
-            'state_dict': net.state_dict(),
-            'recorder': recorder,
-            'optimizer': optimizer.state_dict(),
-        }, is_best, exp_dir, 'checkpoint.pth.tar')
+        save_checkpoint(dict(params=net.state_dict()), is_best, exp_dir, 'checkpoint.pth')
 
         # measure elapsed time
         epoch_time.update(time.time() - start_time)

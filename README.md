@@ -1,5 +1,6 @@
 # Image-augmentation
-Reproduce Manifold Mixup(Verma, Vikas, et al.) and AugMix(Hendrycks, Dan, et al.)
+- Reproduce Manifold Mixup(Verma, Vikas, et al.) and AugMix(Hendrycks, Dan, et al.)
+- Only CIFAR-100 dataset is supported now.
 
 ## How to Run
 
@@ -26,7 +27,7 @@ python summary.py
 
 ## Results
 
-### CIFAR-100
+![img](assets/cifar-result.png)
 
 | Experiment option                                            | Reproduce | Paper               | Clustering quality |
 | ------------------------------------------------------------ | --------- | ------------------- | ------------------ |
@@ -40,6 +41,5 @@ python summary.py
 
 ## References
 
-- Manifold Mixup: https://github.com/vikasverma1077/manifold_mixup
-- AugMix: https://github.com/google-research/augmix
-- AugMix torchvision: https://pytorch.org/vision/main/generated/torchvision.transforms.AugMix.html#torchvision.transforms.AugMix
+- Manifold Mixup code is based on https://github.com/vikasverma1077/manifold_mixup
+- AugMix code is based on  https://github.com/google-research/augmix

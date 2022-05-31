@@ -10,7 +10,7 @@ cd mixup
 ./run.sh
 ```
 
-1. CIFAR-100 with AugMix
+2. CIFAR-100 with AugMix
 
 ```shell
 cd augmix

@@ -29,15 +29,15 @@ python summary.py
 
 ![img](assets/cifar-result.png)
 
-| Experiment option                                            | Reproduce | Paper               | Clustering quality |
-| ------------------------------------------------------------ | --------- | ------------------- | ------------------ |
-| ResNet-20<br/>(240 epoch)                                    |           | -                   |                    |
-| ResNet-18<br/>(240 epoch)                                    |           | -                   |                    |
-| Manifold Mixup, PreActResNet-20<br>(2000 epoch, original_repo_ver) |           | -                   |                    |
-| Manifold Mixup, PreActResNet-18<br/>(2000 epoch, original_repo_ver) |           | 79.66% (1200 epoch) |                    |
-| Manifold Mixup, PreActResNet-18<br/>(200 epoch, fast_ver)    |           | 79.66% (1200 epoch) |                    |
-| AugMix, PreActResNet-20<br/>(200 epoch)                      |           | -                   |                    |
-| AugMix, PreActResNet-18<br/>(200 epoch)                      |           | -                   |                    |
+| Experiment option                                                   | Reproduce | Paper               | Clustering quality |
+|---------------------------------------------------------------------|-----------|---------------------| ------------------ |
+| ResNet-20<br/>(240 epoch)                                           | 69.95%    | -                   |                    |
+| ResNet-18<br/>(240 epoch)                                           | TBU       | -                   |                    |
+| Manifold Mixup, PreActResNet-20<br>(2000 epoch, original_repo_ver)  | TBU       | -                   |                    |
+| Manifold Mixup, PreActResNet-18<br/>(2000 epoch, original_repo_ver) | 80.72%    | 79.66% (1200 epoch) |                    |
+| Manifold Mixup, PreActResNet-18<br/>(200 epoch, fast_ver)           | 78.06%    | 79.66% (1200 epoch) |                    |
+| AugMix, PreActResNet-20<br/>(200 epoch)                             | TBU       | -                   |                    |
+| AugMix, PreActResNet-18<br/>(200 epoch)                             | 75.07%    | -                   |                    |
 
 ## References
 

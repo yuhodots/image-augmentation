@@ -27,18 +27,21 @@ python summary.py
 
 ## Results
 
-![img](assets/cifar-result.png)
+ResNet-18 was not reproduced, so I replaced it with the result of [here](https://github.com/weiaicunzai/pytorch-cifar100#results).
 
-| Experiment option                                                   | Reproduce | Paper               | Clustering quality |
-|---------------------------------------------------------------------|-----------|---------------------| ------------------ |
-| ResNet-20<br/>(240 epoch)                                           | 69.95%    | -                   |                    |
-| ResNet-18<br/>(200 epoch)                                           | TBU       | -                   |                    |
-| Manifold Mixup, PreActResNet-20<br>(2000 epoch, paper_ver)          | TBU       | -                   |                    |
-| Manifold Mixup, PreActResNet-18<br/>(2000 epoch, original_repo_ver) | 80.72%    | 79.66% (1200 epoch) |                    |
-| AugMix, PreActResNet-20<br/>(200 epoch)                             | TBU       | -                   |                    |
-| AugMix, PreActResNet-18<br/>(200 epoch)                             | 75.07%    | -                   |                    |
+| Model           | Data Augmentation | Epoch | Top-1 Acc |
+| --------------- | ----------------- | ----- | --------- |
+| ResNet-20       | None              | 240   | 69.95%    |
+| PreActResNet-20 | Manifold Mixup    | 2000  | 63.92%    |
+| PreActResNet-20 | AugMix            | 200   | 68.41%    |
+| ResNet-18       | None              | -     | 75.61%    |
+| PreActResNet-18 | Manifold Mixup    | 2000  | 80.72%    |
+| PreActResNet-18 | AugMix            | 200   | 75.07%    |
+
+![img](assets/manifold_mixup.png)
 
 ## References
 
 - Manifold Mixup code is based on https://github.com/vikasverma1077/manifold_mixup
 - AugMix code is based on  https://github.com/google-research/augmix
+- https://github.com/weiaicunzai/pytorch-cifar100#results

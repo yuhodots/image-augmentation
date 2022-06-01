@@ -52,7 +52,7 @@ if [ "${EXP}" = "CIFAR-100 |    No Mixup    |    ResNet18" ]; then
         --batch_size 128 \
         --learning_rate 0.1 \
         --momentum 0.9 \
-        --decay 0.0001 \
+        --decay 0.0005 \
         --epochs 200 \
         --schedule 100 150 \
         --gammas 0.1 0.1 \

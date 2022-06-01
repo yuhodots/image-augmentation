@@ -27,6 +27,8 @@ python summary.py
 
 ## Results
 
+![img](assets/manifold_mixup.png)
+
 ResNet-18 was not reproduced, so I replaced it with the result of [here](https://github.com/weiaicunzai/pytorch-cifar100#results).
 
 | Model           | Data Augmentation | Epoch | Top-1 Acc |
@@ -37,8 +39,6 @@ ResNet-18 was not reproduced, so I replaced it with the result of [here](https:/
 | ResNet-18       | None              | -     | 75.61%    |
 | PreActResNet-18 | Manifold Mixup    | 2000  | 80.72%    |
 | PreActResNet-18 | AugMix            | 200   | 75.07%    |
-
-![img](assets/manifold_mixup.png)
 
 ## References
 

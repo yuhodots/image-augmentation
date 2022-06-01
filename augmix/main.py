@@ -103,7 +103,6 @@ def experiment_name_non_mnist(dataset='cifar100',
                               add_name=''):
     exp_name = dataset
     exp_name += '_arch_' + str(arch)
-    exp_name += '_train_' + str(train)
     exp_name += '_eph_' + str(epochs)
     exp_name += '_bs_' + str(batch_size)
     exp_name += '_lr_' + str(lr)

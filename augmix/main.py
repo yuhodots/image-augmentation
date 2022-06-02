@@ -71,7 +71,8 @@ def get_command_line_parser():
     parser.add_argument('--mixture_depth', default=-1, type=int,
                         help='Depth of augmentation chains. -1 denotes stochastic depth in [1, 3]')
     parser.add_argument('--aug_severity', default=3, type=int, help='Severity of base augmentation operators')
-    parser.add_argument('--no_jsd', '-nj', action='store_true', help='Turn off JSD consistency loss.')
+    parser.add_argument('--consistency_loss', type=str, default='none', choices=['none', 'jsd', 'squared_l2'])
+    parser.add_argument('--consistency_loss_factor', type=float, default=12)
     parser.add_argument('--all_ops', '-all', action='store_true',
                         help='Turn on all operations (+brightness,contrast,color,sharpness).')
 
@@ -83,6 +84,12 @@ def get_command_line_parser():
     parser.add_argument('--num_workers', type=int, default=4, help='Number of pre-fetching threads.')
 
     return parser.parse_args()
+
+
+def normalized_squared_l2_loss(x, y):
+    x = F.normalize(x, dim=-1, p=2)
+    y = F.normalize(y, dim=-1, p=2)
+    return 2 - 2 * (x * y).sum(dim=-1)
 
 
 def load_data(args):
@@ -104,7 +111,7 @@ def load_data(args):
         train_data = select_from_default(train_data, np.arange(args.partial_class_indices))
         test_data = select_from_default(test_data, np.arange(args.partial_class_indices))
 
-    train_data = AugMixDataset(args, train_data, preprocess, args.no_jsd)
+    train_data = AugMixDataset(args, train_data, preprocess, args.consistency_loss)
     train_loader = torch.utils.data.DataLoader(train_data, batch_size=args.batch_size, shuffle=True,
                                                num_workers=args.num_workers, pin_memory=True)
     test_loader = torch.utils.data.DataLoader(test_data, batch_size=args.eval_batch_size, shuffle=False,
@@ -119,12 +126,12 @@ def train(args, net, train_loader, optimizer):
     for i, (images, targets) in enumerate(train_loader):
         optimizer.zero_grad()
 
-        if args.no_jsd:
+        if args.consistency_loss == "none":
             images = images.cuda()
             targets = targets.cuda()
             logits = net(images)
             loss = F.cross_entropy(logits, targets)
-        else:
+        elif args.consistency_loss == "jsd":
             images_all = torch.cat(images, 0).cuda()
             targets = targets.cuda()
             logits_all = net(images_all)
@@ -139,9 +146,26 @@ def train(args, net, train_loader, optimizer):
 
             # Clamp mixture distribution to avoid exploding KL divergence
             p_mixture = torch.clamp((p_clean + p_aug1 + p_aug2) / 3., 1e-7, 1).log()
-            loss += 12 * (F.kl_div(p_mixture, p_clean, reduction='batchmean') +
-                          F.kl_div(p_mixture, p_aug1, reduction='batchmean') +
-                          F.kl_div(p_mixture, p_aug2, reduction='batchmean')) / 3.
+            loss += args.consistency_loss_factor * \
+                    (F.kl_div(p_mixture, p_clean, reduction='batchmean') +
+                     F.kl_div(p_mixture, p_aug1, reduction='batchmean') +
+                     F.kl_div(p_mixture, p_aug2, reduction='batchmean')) / 3.
+        elif args.consistency_loss == "squared_l2":
+            images_all = torch.cat(images, 0).cuda()
+            targets = targets.cuda()
+            embeds_all = net(images_all, encode=True)
+            embeds_clean, embeds_aug1, embeds_aug2 = torch.split(embeds_all, images[0].size(0))
+
+            # Cross-entropy is only computed on clean images
+            loss = F.cross_entropy(net.module.linear(embeds_clean), targets)
+
+            embeds_mean = (embeds_clean + embeds_aug1 + embeds_aug2) / 3.
+            loss += args.consistency_loss_factor * \
+                    (normalized_squared_l2_loss(embeds_mean, embeds_clean).mean() +
+                     normalized_squared_l2_loss(embeds_mean, embeds_aug1).mean() +
+                     normalized_squared_l2_loss(embeds_mean, embeds_aug2).mean()) / 3.
+        else:
+            raise AssertionError(f"There is no consistency loss: {args.consistency_loss}")
 
         loss.backward()
         optimizer.step()

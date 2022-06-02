@@ -99,7 +99,7 @@ class PreActResNet(nn.Module):
         out = self.layer2(out)
         return out
 
-    def forward(self, x, target=None, mixup=False, mixup_hidden=False, mixup_alpha=None):
+    def forward(self, x, target=None, mixup=False, mixup_hidden=False, mixup_alpha=None, encode=False):
         # import pdb; pdb.set_trace()
         if self.per_img_std:
             x = per_image_standardization(x)
@@ -142,6 +142,10 @@ class PreActResNet(nn.Module):
         out = self.layer4(out)
         out = F.avg_pool2d(out, 4)
         out = out.view(out.size(0), -1)
+
+        if encode:
+            return out
+
         out = self.linear(out)
 
         if target is not None:

@@ -45,10 +45,11 @@ if [ "${EXP}" = "CIFAR-100 |    AugMix    | preactresnet18" ]; then
         --batch_size 128 \
         --learning_rate 0.1 \
         --momentum 0.9 \
-        --decay 0.0001 \
+        --decay 0.0005 \
         --epochs 200 \
         --schedule 100 150 \
         --gammas 0.1 0.1 \
+        --consistency_loss jsd \
         --partial_class ${PCB} \
         --partial_class_indices ${PCI} \
         --memo ''
@@ -61,10 +62,11 @@ elif [ "${EXP}" = "CIFAR-100 |    AugMix    | preactresnet20" ]; then
         --batch_size 256 \
         --learning_rate 0.1 \
         --momentum 0.9 \
-        --decay 0.0001 \
-        --epochs 200 \
-        --schedule 100 150 \
-        --gammas 0.1 0.1 \
+        --decay 0.0005 \
+        --epochs 240 \
+        --schedule 120 \
+        --gammas 0.01 \
+        --consistency_loss jsd \
         --partial_class ${PCB} \
         --partial_class_indices ${PCI} \
         --memo ''

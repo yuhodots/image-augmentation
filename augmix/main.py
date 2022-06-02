@@ -99,6 +99,11 @@ def load_data(args):
         test_data = datasets.CIFAR100(args.data_dir, train=False, transform=test_transform, download=True)
         num_classes = 100
 
+    if args.partial_class:
+        num_classes = args.partial_class_indices
+        train_data = select_from_default(train_data, np.arange(args.partial_class_indices))
+        test_data = select_from_default(test_data, np.arange(args.partial_class_indices))
+
     train_data = AugMixDataset(args, train_data, preprocess, args.no_jsd)
     train_loader = torch.utils.data.DataLoader(train_data, batch_size=args.batch_size, shuffle=True,
                                                num_workers=args.num_workers, pin_memory=True)

@@ -60,6 +60,26 @@ def adjust_learning_rate(args, optimizer, epoch, gammas, schedule):
     return lr
 
 
+def select_from_default(dataset, index):
+    data = dataset.data
+    targets = np.asarray(dataset.targets)
+
+    data_tmp = []
+    targets_tmp = []
+    for i in index:
+        ind_cl = np.where(i == targets)[0]
+        if data_tmp == []:
+            data_tmp = data[ind_cl]
+            targets_tmp = targets[ind_cl]
+        else:
+            data_tmp = np.vstack((data_tmp, data[ind_cl]))
+            targets_tmp = np.hstack((targets_tmp, targets[ind_cl]))
+
+    dataset.data = data_tmp
+    dataset.targets = targets_tmp
+    return dataset
+
+
 class AugMixDataset(torch.utils.data.Dataset):
     """Dataset wrapper to perform AugMix augmentation."""
 

@@ -241,10 +241,10 @@ def main():
         best_acc = max(test_acc, best_acc)
         checkpoint = {'epoch': epoch, 'dataset': args.dataset, 'model': args.arch, 'state_dict': net.state_dict(),
                       'best_acc': best_acc, 'optimizer': optimizer.state_dict()}
-        save_path = os.path.join(exp_dir, 'checkpoint.pth.tar')
+        save_path = os.path.join(exp_dir, 'checkpoint.pth')
         torch.save(checkpoint, save_path)
         if is_best:
-            shutil.copyfile(save_path, os.path.join(exp_dir, 'model_best.pth.tar'))
+            shutil.copyfile(save_path, os.path.join(exp_dir, 'model_best.pth'))
 
         # Save log
         with open(log_path, 'a') as f:

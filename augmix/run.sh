@@ -1,15 +1,24 @@
 #!/bin/bash
 
 # Experiment options
-exp_opt=("CIFAR-100 |    AugMix    | preactresnet18" \
-         "CIFAR-100 |    AugMix    | preactresnet20" )
+exp_opt=("CIFAR-100 | AugMix | preactresnet18" \
+         "CIFAR-100 | AugMix | preactresnet20" )
 partial_class_opt=("True" "False")
+loss_opt=("none" "jsd" "squared_l2")
 
 echo
 echo "* Please select the experiment option."
 PS3="number: "
 select opt in "${exp_opt[@]}"; do
     EXP="${opt}"
+    break
+done
+
+echo
+echo "* Please select the consistency loss type."
+PS3="number: "
+select opt in "${loss_opt[@]}"; do
+    LOSS="${opt}"
     break
 done
 
@@ -49,7 +58,7 @@ if [ "${EXP}" = "CIFAR-100 |    AugMix    | preactresnet18" ]; then
         --epochs 200 \
         --schedule 100 150 \
         --gammas 0.1 0.1 \
-        --consistency_loss jsd \
+        --consistency_loss ${LOSS} \
         --partial_class ${PCB} \
         --partial_class_indices ${PCI} \
         --memo ''
@@ -66,7 +75,7 @@ elif [ "${EXP}" = "CIFAR-100 |    AugMix    | preactresnet20" ]; then
         --epochs 240 \
         --schedule 120 \
         --gammas 0.01 \
-        --consistency_loss jsd \
+        --consistency_loss ${LOSS} \
         --partial_class ${PCB} \
         --partial_class_indices ${PCI} \
         --memo ''

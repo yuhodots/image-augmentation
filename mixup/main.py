@@ -15,7 +15,7 @@ mpl.use('Agg')
 from mixup.utils import *
 import models
 from collections import OrderedDict
-from dataset.load_data import *
+from mixup.data import *
 from plots import *
 import torch.multiprocessing
 torch.multiprocessing.set_sharing_strategy('file_system')
@@ -87,19 +87,9 @@ if args.use_cuda:
 cudnn.benchmark = True
 
 
-def experiment_name_non_mnist(dataset='cifar10',
-                              arch='',
-                              epochs=400,
-                              dropout=True,
-                              batch_size=64,
-                              lr=0.01,
-                              momentum=0.5,
-                              decay=0.0005,
-                              data_aug=1,
-                              train='vanilla',
-                              mixup_alpha=0.0,
-                              job_id=None,
-                              add_name=''):
+def experiment_name_non_mnist(dataset='cifar10', arch='', epochs=400, dropout=True, batch_size=64, lr=0.01,
+                              momentum=0.5, decay=0.0005, data_aug=1, train='vanilla',
+                              mixup_alpha=0.0, job_id=None, add_name=''):
     exp_name = dataset
     exp_name += '_arch_' + str(arch)
     exp_name += '_train_' + str(train)

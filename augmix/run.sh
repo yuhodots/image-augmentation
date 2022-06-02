@@ -3,6 +3,7 @@
 # Experiment options
 exp_opt=("CIFAR-100 |    AugMix    | preactresnet18" \
          "CIFAR-100 |    AugMix    | preactresnet20" )
+partial_class_opt=("True" "False")
 
 echo
 echo "* Please select the experiment option."
@@ -11,6 +12,22 @@ select opt in "${exp_opt[@]}"; do
     EXP="${opt}"
     break
 done
+
+echo
+echo "* Please select the partial class option."
+PS3="number: "
+select opt in "${partial_class_opt[@]}"; do
+    PCB="${opt}"
+    break
+done
+
+PCI=100
+if [ "${PCB}" = "True" ]; then
+    echo
+    echo -n "* Please select partial_class_indices: "
+    read -r num
+    PCI="${num}"
+fi
 
 echo
 echo -n "* Please select GPU ID: "
@@ -32,6 +49,8 @@ if [ "${EXP}" = "CIFAR-100 |    AugMix    | preactresnet18" ]; then
         --epochs 200 \
         --schedule 100 150 \
         --gammas 0.1 0.1 \
+        --partial_class ${PCB} \
+        --partial_class_indices ${PCI} \
         --memo ''
 elif [ "${EXP}" = "CIFAR-100 |    AugMix    | preactresnet20" ]; then
     CUDA_VISIBLE_DEVICES=${GPU} python augmix/main.py \
@@ -46,6 +65,8 @@ elif [ "${EXP}" = "CIFAR-100 |    AugMix    | preactresnet20" ]; then
         --epochs 200 \
         --schedule 100 150 \
         --gammas 0.1 0.1 \
+        --partial_class ${PCB} \
+        --partial_class_indices ${PCI} \
         --memo ''
 else
     echo "There is no option for '${EXP}'"

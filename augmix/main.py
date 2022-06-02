@@ -35,53 +35,79 @@ model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("__")
                      and callable(models.__dict__[name]))
 
-parser = argparse.ArgumentParser(description='Trains a CIFAR Classifier',
-                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--dataset', type=str, default='cifar100',
-                    choices=['cifar10', 'cifar100'], help='Choose between CIFAR-10, CIFAR-100.')
-parser.add_argument('--data_dir', type=str, default='cifar10', help='dataset directory path')
-parser.add_argument('--arch', metavar='ARCH', default='preactresnet18', choices=model_names,
-                    help='model architecture: ' + ' | '.join(model_names) + ' (default: preactresnet18)')
-parser.add_argument('--memo', type=str, default='')
 
-# Optimization options
-parser.add_argument('--epochs', '-e', type=int, default=100, help='Number of epochs to train.')
-parser.add_argument('--learning_rate', '-lr', type=float, default=0.1, help='Initial learning rate.')
-parser.add_argument('--batch_size', '-b', type=int, default=128, help='Batch size.')
-parser.add_argument('--eval_batch_size', type=int, default=1000)
-parser.add_argument('--momentum', type=float, default=0.9, help='Momentum.')
-parser.add_argument('--decay', '-wd', type=float, default=0.0005, help='Weight decay (L2 penalty).')
-parser.add_argument('--schedule', type=int, nargs='+', default=[150, 225],
-                    help='Decrease learning rate at these epochs.')
-parser.add_argument('--gammas', type=float, nargs='+', default=[0.1, 0.1],
-                    help='LR is multiplied by gamma on schedule, number of gammas should be equal to schedule')
+def get_command_line_parser():
+    parser = argparse.ArgumentParser(description='Trains a CIFAR Classifier',
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--dataset', type=str, default='cifar100',
+                        choices=['cifar10', 'cifar100'], help='Choose between CIFAR-10, CIFAR-100.')
+    parser.add_argument('--data_dir', type=str, default='cifar10', help='dataset directory path')
+    parser.add_argument('--arch', metavar='ARCH', default='preactresnet18', choices=model_names,
+                        help='model architecture: ' + ' | '.join(model_names) + ' (default: preactresnet18)')
+    parser.add_argument('--partial_class', type=str2bool, default=False, help='use only partial class of dataset')
+    parser.add_argument('--partial_class_indices', type=int, default=60)
+    parser.add_argument('--memo', type=str, default='')
 
-# WRN Architecture options
-parser.add_argument('--layers', default=40, type=int, help='total number of layers')
-parser.add_argument('--widen_factor', default=2, type=int, help='Widen factor')
-parser.add_argument('--droprate', default=0.0, type=float, help='Dropout probability')
+    # Optimization options
+    parser.add_argument('--epochs', '-e', type=int, default=100, help='Number of epochs to train.')
+    parser.add_argument('--learning_rate', '-lr', type=float, default=0.1, help='Initial learning rate.')
+    parser.add_argument('--batch_size', '-b', type=int, default=128, help='Batch size.')
+    parser.add_argument('--eval_batch_size', type=int, default=1000)
+    parser.add_argument('--momentum', type=float, default=0.9, help='Momentum.')
+    parser.add_argument('--decay', '-wd', type=float, default=0.0005, help='Weight decay (L2 penalty).')
+    parser.add_argument('--schedule', type=int, nargs='+', default=[150, 225],
+                        help='Decrease learning rate at these epochs.')
+    parser.add_argument('--gammas', type=float, nargs='+', default=[0.1, 0.1],
+                        help='LR is multiplied by gamma on schedule, number of gammas should be equal to schedule')
 
-# AugMix options
-parser.add_argument('--mixture_width', default=3, type=int,
-                    help='Number of augmentation chains to mix per augmented example')
-parser.add_argument('--mixture_depth', default=-1, type=int,
-                    help='Depth of augmentation chains. -1 denotes stochastic depth in [1, 3]')
-parser.add_argument('--aug_severity', default=3, type=int, help='Severity of base augmentation operators')
-parser.add_argument('--no_jsd', '-nj', action='store_true', help='Turn off JSD consistency loss.')
-parser.add_argument('--all_ops', '-all', action='store_true',
-                    help='Turn on all operations (+brightness,contrast,color,sharpness).')
+    # WRN Architecture options
+    parser.add_argument('--layers', default=40, type=int, help='total number of layers')
+    parser.add_argument('--widen_factor', default=2, type=int, help='Widen factor')
+    parser.add_argument('--droprate', default=0.0, type=float, help='Dropout probability')
 
-# Checkpointing options
-parser.add_argument('--result_dir', '-s', type=str, default='results/augmix/', help='Folder to save checkpoints.')
-parser.add_argument('--print_freq', type=int, default=50, help='Training loss print frequency (batches).')
+    # AugMix options
+    parser.add_argument('--mixture_width', default=3, type=int,
+                        help='Number of augmentation chains to mix per augmented example')
+    parser.add_argument('--mixture_depth', default=-1, type=int,
+                        help='Depth of augmentation chains. -1 denotes stochastic depth in [1, 3]')
+    parser.add_argument('--aug_severity', default=3, type=int, help='Severity of base augmentation operators')
+    parser.add_argument('--no_jsd', '-nj', action='store_true', help='Turn off JSD consistency loss.')
+    parser.add_argument('--all_ops', '-all', action='store_true',
+                        help='Turn on all operations (+brightness,contrast,color,sharpness).')
 
-# Acceleration
-parser.add_argument('--num_workers', type=int, default=4, help='Number of pre-fetching threads.')
+    # Checkpointing options
+    parser.add_argument('--result_dir', '-s', type=str, default='results/augmix/', help='Folder to save checkpoints.')
+    parser.add_argument('--print_freq', type=int, default=50, help='Training loss print frequency (batches).')
 
-args = parser.parse_args()
+    # Acceleration
+    parser.add_argument('--num_workers', type=int, default=4, help='Number of pre-fetching threads.')
+
+    return parser.parse_args()
 
 
-def train(net, train_loader, optimizer):
+def load_data(args):
+    train_transform = transforms.Compose([transforms.RandomHorizontalFlip(), transforms.RandomCrop(32, padding=4)])
+    preprocess = transforms.Compose([transforms.ToTensor(), transforms.Normalize([0.5] * 3, [0.5] * 3)])
+    test_transform = preprocess
+
+    if args.dataset == 'cifar10':
+        train_data = datasets.CIFAR10(args.data_dir, train=True, transform=train_transform, download=True)
+        test_data = datasets.CIFAR10(args.data_dir, train=False, transform=test_transform, download=True)
+        num_classes = 10
+    else:
+        train_data = datasets.CIFAR100(args.data_dir, train=True, transform=train_transform, download=True)
+        test_data = datasets.CIFAR100(args.data_dir, train=False, transform=test_transform, download=True)
+        num_classes = 100
+
+    train_data = AugMixDataset(args, train_data, preprocess, args.no_jsd)
+    train_loader = torch.utils.data.DataLoader(train_data, batch_size=args.batch_size, shuffle=True,
+                                               num_workers=args.num_workers, pin_memory=True)
+    test_loader = torch.utils.data.DataLoader(test_data, batch_size=args.eval_batch_size, shuffle=False,
+                                              num_workers=args.num_workers, pin_memory=True)
+    return train_loader, test_loader, num_classes
+
+
+def train(args, net, train_loader, optimizer):
     """Train for one epoch."""
     net.train()
     loss_ema = 0.
@@ -139,30 +165,13 @@ def test(net, test_loader):
 
 
 def main():
+    # Initialization
     torch.manual_seed(1)
     np.random.seed(1)
+    args = get_command_line_parser()
 
-    # Load datasets
-    train_transform = transforms.Compose([transforms.RandomHorizontalFlip(), transforms.RandomCrop(32, padding=4)])
-    preprocess = transforms.Compose([transforms.ToTensor(), transforms.Normalize([0.5] * 3, [0.5] * 3)])
-    test_transform = preprocess
-
-    if args.dataset == 'cifar10':
-        train_data = datasets.CIFAR10(args.data_dir, train=True, transform=train_transform, download=True)
-        test_data = datasets.CIFAR10(args.data_dir, train=False, transform=test_transform, download=True)
-        num_classes = 10
-    else:
-        train_data = datasets.CIFAR100(args.data_dir, train=True, transform=train_transform, download=True)
-        test_data = datasets.CIFAR100(args.data_dir, train=False, transform=test_transform, download=True)
-        num_classes = 100
-
-    train_data = AugMixDataset(args, train_data, preprocess, args.no_jsd)
-    train_loader = torch.utils.data.DataLoader(train_data, batch_size=args.batch_size, shuffle=True,
-                                               num_workers=args.num_workers, pin_memory=True)
-    test_loader = torch.utils.data.DataLoader(test_data, batch_size=args.eval_batch_size, shuffle=False,
-                                              num_workers=args.num_workers, pin_memory=True)
-
-    # Create model
+    # Load dataset and model
+    train_loader, test_loader, num_classes = load_data(args)
     net = models.__dict__[args.arch](num_classes).cuda()
     optimizer = torch.optim.SGD(net.parameters(), args.learning_rate, momentum=args.momentum,
                                 weight_decay=args.decay, nesterov=True)
@@ -177,6 +186,8 @@ def main():
                                          batch_size=args.batch_size, lr=args.learning_rate, momentum=args.momentum,
                                          decay=args.decay, add_name=args.memo)
     exp_dir = args.result_dir + exp_name
+    if args.partial_class:
+        exp_dir += f"_partial_class_{str(args.partial_class_indices)}"
     if not os.path.exists(exp_dir):
         os.makedirs(exp_dir)
     if not os.path.isdir(exp_dir):
@@ -193,7 +204,7 @@ def main():
 
         # Train & Evaluation
         current_learning_rate = adjust_learning_rate(args, optimizer, epoch, args.gammas, args.schedule)
-        train_loss_ema = train(net, train_loader, optimizer)
+        train_loss_ema = train(args, net, train_loader, optimizer)
         test_loss, test_acc = test(net, test_loader)
 
         # Save checkpoint and best model

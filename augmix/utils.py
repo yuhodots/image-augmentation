@@ -1,6 +1,33 @@
 import torch
 import numpy as np
-from augmix.augmentations import augmentations, augmentations_all
+import random
+from augmix.transforms import augmentations, augmentations_all
+
+
+def set_seed(seed):
+    if seed == 0:
+        print(' random seed')
+        torch.backends.cudnn.benchmark = True
+    else:
+        print('manual seed:', seed)
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed) # if use multi-GPU
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+
+
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise AssertionError("Boolean value is expected")
 
 
 def experiment_name_non_mnist(dataset='cifar100', arch='', epochs=400, batch_size=64,

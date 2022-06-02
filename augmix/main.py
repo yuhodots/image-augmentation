@@ -11,15 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ==============================================================================
-"""Main script to launch AugMix training on CIFAR-10/100.
-
-Supports WideResNet, AllConv, ResNeXt models on CIFAR-10 and CIFAR-100 as well
-as evaluation on CIFAR-10-C and CIFAR-100-C.
-
-Example usage:
-  `python cifar.py`
-"""
 from __future__ import print_function
 
 import argparse
@@ -33,15 +24,12 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 
-from augmix.augmentations import augmentations, augmentations_all
 import models
-import numpy as np
-
-import torch
 import torch.backends.cudnn as cudnn
 import torch.nn.functional as F
 from torchvision import datasets
 from torchvision import transforms
+from augmix.utils import *
 
 model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("__")
@@ -93,93 +81,6 @@ parser.add_argument('--num_workers', type=int, default=4, help='Number of pre-fe
 args = parser.parse_args()
 
 
-def experiment_name_non_mnist(dataset='cifar100',
-                              arch='',
-                              epochs=400,
-                              batch_size=64,
-                              lr=0.01,
-                              momentum=0.5,
-                              decay=0.0005,
-                              add_name=''):
-    exp_name = dataset
-    exp_name += '_arch_' + str(arch)
-    exp_name += '_eph_' + str(epochs)
-    exp_name += '_bs_' + str(batch_size)
-    exp_name += '_lr_' + str(lr)
-    exp_name += '_mom_' + str(momentum)
-    exp_name += '_decay_' + str(decay)
-    if add_name != '':
-        exp_name += '_add_name_' + str(add_name)
-    # exp_name += strftime("_%Y-%m-%d_%H:%M:%S", gmtime())
-    print('experiement name: ' + exp_name)
-    return exp_name
-
-
-def adjust_learning_rate(optimizer, epoch, gammas, schedule):
-    """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
-    lr = args.learning_rate
-    assert len(gammas) == len(schedule), "length of gammas and schedule should be equal"
-    for (gamma, step) in zip(gammas, schedule):
-        if (epoch >= step):
-            lr = lr * gamma
-        else:
-            break
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
-    return lr
-
-
-def aug(image, preprocess):
-    """Perform AugMix augmentations and compute mixture.
-
-    Args:
-      image: PIL.Image input image
-      preprocess: Preprocessing function which should return a torch tensor.
-
-    Returns:
-      mixed: Augmented and mixed image.
-    """
-    aug_list = augmentations
-    if args.all_ops:
-        aug_list = augmentations_all
-
-    ws = np.float32(np.random.dirichlet([1] * args.mixture_width))
-    m = np.float32(np.random.beta(1, 1))
-
-    mix = torch.zeros_like(preprocess(image))
-    for i in range(args.mixture_width):
-        image_aug = image.copy()
-        depth = args.mixture_depth if args.mixture_depth > 0 else np.random.randint(1, 4)
-        for _ in range(depth):
-            op = np.random.choice(aug_list)
-            image_aug = op(image_aug, args.aug_severity)
-        # Preprocessing commutes since all coefficients are convex
-        mix += ws[i] * preprocess(image_aug)
-
-    mixed = (1 - m) * preprocess(image) + m * mix
-    return mixed
-
-
-class AugMixDataset(torch.utils.data.Dataset):
-    """Dataset wrapper to perform AugMix augmentation."""
-
-    def __init__(self, dataset, preprocess, no_jsd=False):
-        self.dataset = dataset
-        self.preprocess = preprocess
-        self.no_jsd = no_jsd
-
-    def __getitem__(self, i):
-        x, y = self.dataset[i]
-        if self.no_jsd:
-            return aug(x, self.preprocess), y
-        else:
-            im_tuple = (self.preprocess(x), aug(x, self.preprocess), aug(x, self.preprocess))
-            return im_tuple, y
-
-    def __len__(self):
-        return len(self.dataset)
-
-
 def train(net, train_loader, optimizer):
     """Train for one epoch."""
     net.train()
@@ -196,8 +97,7 @@ def train(net, train_loader, optimizer):
             images_all = torch.cat(images, 0).cuda()
             targets = targets.cuda()
             logits_all = net(images_all)
-            logits_clean, logits_aug1, logits_aug2 = torch.split(
-                logits_all, images[0].size(0))
+            logits_clean, logits_aug1, logits_aug2 = torch.split(logits_all, images[0].size(0))
 
             # Cross-entropy is only computed on clean images
             loss = F.cross_entropy(logits_clean, targets)
@@ -235,8 +135,7 @@ def test(net, test_loader):
             total_loss += float(loss.data)
             total_correct += pred.eq(targets.data).sum().item()
 
-    return total_loss / len(test_loader.dataset), total_correct / len(
-        test_loader.dataset)
+    return total_loss / len(test_loader.dataset), total_correct / len(test_loader.dataset)
 
 
 def main():
@@ -244,12 +143,8 @@ def main():
     np.random.seed(1)
 
     # Load datasets
-    train_transform = transforms.Compose(
-        [transforms.RandomHorizontalFlip(),
-         transforms.RandomCrop(32, padding=4)])
-    preprocess = transforms.Compose(
-        [transforms.ToTensor(),
-         transforms.Normalize([0.5] * 3, [0.5] * 3)])
+    train_transform = transforms.Compose([transforms.RandomHorizontalFlip(), transforms.RandomCrop(32, padding=4)])
+    preprocess = transforms.Compose([transforms.ToTensor(), transforms.Normalize([0.5] * 3, [0.5] * 3)])
     test_transform = preprocess
 
     if args.dataset == 'cifar10':
@@ -261,7 +156,7 @@ def main():
         test_data = datasets.CIFAR100(args.data_dir, train=False, transform=test_transform, download=True)
         num_classes = 100
 
-    train_data = AugMixDataset(train_data, preprocess, args.no_jsd)
+    train_data = AugMixDataset(args, train_data, preprocess, args.no_jsd)
     train_loader = torch.utils.data.DataLoader(train_data, batch_size=args.batch_size, shuffle=True,
                                                num_workers=args.num_workers, pin_memory=True)
     test_loader = torch.utils.data.DataLoader(test_data, batch_size=args.eval_batch_size, shuffle=False,
@@ -295,35 +190,28 @@ def main():
     print('Beginning training from epoch:', start_epoch + 1)
     for epoch in range(start_epoch, args.epochs):
         begin_time = time.time()
-        current_learning_rate = adjust_learning_rate(optimizer, epoch, args.gammas, args.schedule)
+
+        # Train & Evaluation
+        current_learning_rate = adjust_learning_rate(args, optimizer, epoch, args.gammas, args.schedule)
         train_loss_ema = train(net, train_loader, optimizer)
         test_loss, test_acc = test(net, test_loader)
 
+        # Save checkpoint and best model
         is_best = test_acc > best_acc
         best_acc = max(test_acc, best_acc)
-        checkpoint = {
-            'epoch': epoch,
-            'dataset': args.dataset,
-            'model': args.arch,
-            'state_dict': net.state_dict(),
-            'best_acc': best_acc,
-            'optimizer': optimizer.state_dict(),
-        }
-
+        checkpoint = {'epoch': epoch, 'dataset': args.dataset, 'model': args.arch, 'state_dict': net.state_dict(),
+                      'best_acc': best_acc, 'optimizer': optimizer.state_dict()}
         save_path = os.path.join(exp_dir, 'checkpoint.pth.tar')
         torch.save(checkpoint, save_path)
         if is_best:
             shutil.copyfile(save_path, os.path.join(exp_dir, 'model_best.pth.tar'))
 
+        # Save log
         with open(log_path, 'a') as f:
-            f.write('%03d,%05d,%0.6f,%0.5f,%0.2f\n' % (
-                (epoch + 1),
-                time.time() - begin_time,
-                train_loss_ema,
-                test_loss,
-                100 - 100. * test_acc,
-            ))
+            f.write('%03d,%05d,%0.6f,%0.5f,%0.2f\n' % ((epoch + 1), time.time() - begin_time,
+                                                       train_loss_ema, test_loss, 100 - 100. * test_acc,))
 
+        # Print results
         print('Epoch {0:3d} | Time {1:5d} | Train Loss {2:.4f} | Test Loss {3:.3f} | Test Error {4:.2f} | LR {5}'
               .format((epoch + 1), int(time.time() - begin_time), train_loss_ema, test_loss,
                       100 - 100. * test_acc, current_learning_rate))

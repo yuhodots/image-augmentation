@@ -45,7 +45,7 @@ GPU="${num}"
 
 # Run python file
 cd ../
-if [ "${EXP}" = "CIFAR-100 |    AugMix    | preactresnet18" ]; then
+if [ "${EXP}" = "CIFAR-100 | AugMix | preactresnet18" ]; then
     CUDA_VISIBLE_DEVICES=${GPU} python augmix/main.py \
         --dataset cifar100 \
         --data_dir /home/miil/Datasets/FSCIL-CEC \
@@ -62,7 +62,7 @@ if [ "${EXP}" = "CIFAR-100 |    AugMix    | preactresnet18" ]; then
         --partial_class ${PCB} \
         --partial_class_indices ${PCI} \
         --memo ''
-elif [ "${EXP}" = "CIFAR-100 |    AugMix    | preactresnet20" ]; then
+elif [ "${EXP}" = "CIFAR-100 | AugMix | preactresnet20" ]; then
     CUDA_VISIBLE_DEVICES=${GPU} python augmix/main.py \
         --dataset cifar100 \
         --data_dir /home/miil/Datasets/FSCIL-CEC \

@@ -211,9 +211,9 @@ def main():
     start_epoch = 0
 
     # Result path
-    exp_name = experiment_name_non_mnist(dataset=args.dataset, arch=args.arch, epochs=args.epochs,
-                                         batch_size=args.batch_size, lr=args.learning_rate, momentum=args.momentum,
-                                         decay=args.decay, add_name=args.memo)
+    exp_name = experiment_name(dataset=args.dataset, arch=args.arch, epochs=args.epochs,
+                               batch_size=args.batch_size, lr=args.learning_rate, momentum=args.momentum,
+                               decay=args.decay, cl_type=args.consistency_loss, add_name=args.memo)
     exp_dir = args.result_dir + exp_name
     if args.partial_class:
         exp_dir += f"_partial_class_{str(args.partial_class_indices)}"

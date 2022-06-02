@@ -30,8 +30,8 @@ def str2bool(v):
         raise AssertionError("Boolean value is expected")
 
 
-def experiment_name_non_mnist(dataset='cifar100', arch='', epochs=400, batch_size=64,
-                              lr=0.01, momentum=0.5, decay=0.0005, add_name=''):
+def experiment_name(dataset='cifar100', arch='', epochs=400, batch_size=64,
+                    lr=0.01, momentum=0.5, decay=0.0005, cl_type='none', add_name=''):
     exp_name = dataset
     exp_name += '_arch_' + str(arch)
     exp_name += '_eph_' + str(epochs)
@@ -39,6 +39,7 @@ def experiment_name_non_mnist(dataset='cifar100', arch='', epochs=400, batch_siz
     exp_name += '_lr_' + str(lr)
     exp_name += '_mom_' + str(momentum)
     exp_name += '_decay_' + str(decay)
+    exp_name += '_cl_' + str(cl_type)
     if add_name != '':
         exp_name += '_add_name_' + str(add_name)
     # exp_name += strftime("_%Y-%m-%d_%H:%M:%S", gmtime())

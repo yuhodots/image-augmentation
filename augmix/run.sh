@@ -5,6 +5,7 @@ exp_opt=("CIFAR-100 | AugMix | preactresnet18" \
          "CIFAR-100 | AugMix | preactresnet20" )
 partial_class_opt=("True" "False")
 loss_opt=("none" "jsd" "squared_l2")
+factor_opt=(6 9 12)
 
 echo
 echo "* Please select the experiment option."
@@ -19,6 +20,15 @@ echo "* Please select the consistency loss type."
 PS3="number: "
 select opt in "${loss_opt[@]}"; do
     LOSS="${opt}"
+    break
+done
+
+echo
+echo "* Please select the consistency loss coefficient."
+echo "  Recommendation: jsd=6, squared_l2=9"
+PS3="number: "
+select opt in "${factor_opt[@]}"; do
+    FACTOR="${opt}"
     break
 done
 
@@ -59,6 +69,7 @@ if [ "${EXP}" = "CIFAR-100 | AugMix | preactresnet18" ]; then
         --schedule 100 150 \
         --gammas 0.1 0.1 \
         --consistency_loss ${LOSS} \
+        --consistency_loss_factor ${FACTOR} \
         --partial_class ${PCB} \
         --partial_class_indices ${PCI} \
         --memo ''
@@ -76,6 +87,7 @@ elif [ "${EXP}" = "CIFAR-100 | AugMix | preactresnet20" ]; then
         --schedule 120 \
         --gammas 0.01 \
         --consistency_loss ${LOSS} \
+        --consistency_loss_factor ${FACTOR} \
         --partial_class ${PCB} \
         --partial_class_indices ${PCI} \
         --memo ''

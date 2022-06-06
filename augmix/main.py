@@ -39,9 +39,8 @@ model_names = sorted(name for name in models.__dict__
 def get_command_line_parser():
     parser = argparse.ArgumentParser(description='Trains a CIFAR Classifier',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--dataset', type=str, default='cifar100',
-                        choices=['cifar10', 'cifar100'], help='Choose between CIFAR-10, CIFAR-100.')
-    parser.add_argument('--data_dir', type=str, default='cifar10', help='dataset directory path')
+    parser.add_argument('--dataset', type=str, default='cifar100', choices=['cifar100'])
+    parser.add_argument('--data_dir', type=str, default='data', help='dataset directory path')
     parser.add_argument('--arch', metavar='ARCH', default='preactresnet18', choices=model_names,
                         help='model architecture: ' + ' | '.join(model_names) + ' (default: preactresnet18)')
     parser.add_argument('--partial_class', type=str2bool, default=False, help='use only partial class of dataset')
@@ -93,18 +92,15 @@ def normalized_squared_l2_loss(x, y):
 
 
 def load_data(args):
-    train_transform = transforms.Compose([transforms.RandomHorizontalFlip(), transforms.RandomCrop(32, padding=4)])
-    preprocess = transforms.Compose([transforms.ToTensor(), transforms.Normalize([0.5] * 3, [0.5] * 3)])
+    train_transform = transforms.Compose([transforms.RandomCrop(32, padding=4),
+                                          transforms.RandomHorizontalFlip()])
+    preprocess = transforms.Compose([transforms.ToTensor(),
+                                     transforms.Normalize(mean=[0.507, 0.487, 0.441], std=[0.267, 0.256, 0.276])])
     test_transform = preprocess
 
-    if args.dataset == 'cifar10':
-        train_data = datasets.CIFAR10(args.data_dir, train=True, transform=train_transform, download=True)
-        test_data = datasets.CIFAR10(args.data_dir, train=False, transform=test_transform, download=True)
-        num_classes = 10
-    else:
-        train_data = datasets.CIFAR100(args.data_dir, train=True, transform=train_transform, download=True)
-        test_data = datasets.CIFAR100(args.data_dir, train=False, transform=test_transform, download=True)
-        num_classes = 100
+    train_data = datasets.CIFAR100(args.data_dir, train=True, transform=train_transform, download=True)
+    test_data = datasets.CIFAR100(args.data_dir, train=False, transform=test_transform, download=True)
+    num_classes = 100
 
     if args.partial_class:
         num_classes = args.partial_class_indices

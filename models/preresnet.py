@@ -136,6 +136,7 @@ class PreActResNet(nn.Module):
             out, target_reweighted = mixup_process(out, target_reweighted, lam=lam)
 
         out = self.layer3(out)
+
         if layer_mix == 3:
             out, target_reweighted = mixup_process(out, target_reweighted, lam=lam)
 

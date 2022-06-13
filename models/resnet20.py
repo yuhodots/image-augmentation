@@ -1,4 +1,9 @@
+import torch
 import torch.nn as nn
+from torch.autograd import Variable
+import numpy as np
+from mixup.utils import to_one_hot, mixup_process, per_image_standardization, get_lambda
+import random
 
 
 def conv3x3(in_planes, out_planes, stride=1):
@@ -84,20 +89,54 @@ class ResNet(nn.Module):
 
         return nn.Sequential(*layers)
 
-    def forward(self, x):
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
+    def forward(self, x, target=None, mixup=False, mixup_hidden=False, mixup_alpha=None, encode=False):
 
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
+        if mixup_hidden:
+            layer_mix = random.randint(0, 2)
+        elif mixup:
+            layer_mix = 0
+        else:
+            layer_mix = None
 
-        x = self.avgpool(x)
-        x = x.view(x.size(0), -1)
-        x = self.fc(x)
+        out = x
 
-        return x
+        if mixup_alpha is not None:
+            lam = get_lambda(mixup_alpha)
+            lam = torch.from_numpy(np.array([lam]).astype('float32')).cuda()
+            lam = Variable(lam)
+
+        if target is not None:
+            target_reweighted = to_one_hot(target, self.num_classes)
+
+        if layer_mix == 0:
+            out, target_reweighted = mixup_process(out, target_reweighted, lam=lam)
+
+        out = self.conv1(out)
+        out = self.bn1(out)
+        out = self.relu(out)
+        out = self.layer1(out)
+
+        if layer_mix == 1:
+            out, target_reweighted = mixup_process(out, target_reweighted, lam=lam)
+
+        out = self.layer2(out)
+
+        if layer_mix == 2:
+            out, target_reweighted = mixup_process(out, target_reweighted, lam=lam)
+
+        out = self.layer3(out)
+        out = self.avgpool(out)
+        out = out.view(out.size(0), -1)
+
+        if encode:
+            return out
+
+        out = self.fc(out)
+
+        if target is not None:
+            return out, target_reweighted
+        else:
+            return out
 
 
 def resnet20(**kwargs):

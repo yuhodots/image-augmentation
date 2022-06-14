@@ -68,7 +68,7 @@ elif [ "${EXP}" = "CIFAR-100 | Manifold Mixup |    ResNet18" ]; then
         --data_dir /home/miil/Datasets/FSCIL-CEC \
         --result_dir results/mixup/ \
         --labels_per_class 500 \
-        --arch preactresnet18  \
+        --arch resnet18  \
         --learning_rate 0.1 \
         --momentum 0.9 \
         --decay 0.0001 \
@@ -103,7 +103,7 @@ elif [ "${EXP}" =  "CIFAR-100 | Manifold Mixup |    ResNet20" ]; then
         --data_dir /home/miil/Datasets/FSCIL-CEC \
         --result_dir results/mixup/ \
         --labels_per_class 500 \
-        --arch preactresnet20  \
+        --arch resnet20  \
         --learning_rate 0.1 \
         --momentum 0.9 \
         --decay 0.0001 \

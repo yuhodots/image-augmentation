@@ -251,7 +251,7 @@ class ResNet(nn.Module):
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
-
+        self.num_classes = num_classes
         self.inplanes = 64
         self.dilation = 1
         self.avg_downsample = avg_downsample

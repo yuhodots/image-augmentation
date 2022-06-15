@@ -34,11 +34,9 @@ ResNet-18 was not reproduced, so I replaced it with the result of [here](https:/
 | Model           | Data Augmentation | Epoch | Top-1 Acc |
 |-----------------| ----------------- |-------|-----------|
 | ResNet-20       | None              | 240   | 69.95%    |
-| ResNet-20       | Manifold Mixup    | 2000  |           |
 | PreActResNet-20 | Manifold Mixup    | 2000  | 63.92%    |
 | PreActResNet-20 | AugMix            | 200   | 68.41%    |
 | ResNet-18       | None              | -     | 75.61%    |
-| ResNet-18       | Manifold Mixup    | 2000  |           |
 | PreActResNet-18 | Manifold Mixup    | 2000  | 80.72%    |
 | PreActResNet-18 | AugMix            | 200   | 75.07%    |
 
